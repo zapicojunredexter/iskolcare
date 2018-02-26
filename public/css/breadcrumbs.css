@@ -1,0 +1,83 @@
+.breadcrumb { 
+  list-style: none; 
+  overflow: hidden; 
+  font: 12px Helvetica, Arial, Sans-Serif;
+  margin: 40px;
+  padding: 0;
+}
+.breadcrumb li a {
+  color: white;
+  text-decoration: none; 
+  padding: 10px 0 10px 55px;
+  background: brown; /* fallback color */
+ 
+  background: #25704f;
+  position: relative; 
+  display: block;
+  float: left;
+}
+.breadcrumb li a {
+  color: white;
+  text-decoration: none; 
+  padding: 10px 0 10px 55px;
+  background: brown; /* fallback color */
+ 
+  background: #25704f;
+  position: relative; 
+  display: block;
+  float: left;
+}
+.breadcrumb li a:after { 
+  content: " "; 
+  display: block; 
+  width: 0; 
+  height: 0;
+  border-top: 50px solid transparent;           /* Go big on the size, and let overflow hide */
+  border-bottom: 50px solid transparent;
+  border-left: 30px solid hsla(34,85%,35%,1);
+  border-left: 30px solid #25704f;
+  position: absolute;
+  top: 50%;
+  margin-top: -50px; 
+  left: 100%;
+  z-index: 2; 
+}   
+.breadcrumb li a:before { 
+  content: " "; 
+  display: block; 
+  width: 0; 
+  height: 0;
+  border-top: 50px solid transparent;           /* Go big on the size, and let overflow hide */
+  border-bottom: 50px solid transparent;
+  border-left: 30px solid #e6eaeb;
+  position: absolute;
+  top: 50%;
+  margin-top: -50px; 
+  margin-left: 1px;
+  left: 100%;
+  z-index: 1; 
+}   
+.breadcrumb li:first-child a {
+  padding-left: 20px;
+  border-top-left-radius:3px;
+  border-bottom-left-radius:3px;
+}
+.breadcrumb li:last-child a {
+  pointer-events: none;
+  cursor: default;
+  border-top-right-radius:3px;
+  border-bottom-right-radius:3px;
+  background-color:transparent;
+  padding-right:20px;
+}
+.breadcrumb li:last-child a:after { border: 0; }
+.breadcrumb li a:hover { background: #3e946f; transition: 0.2s;}
+.breadcrumb li a:hover:after { border-left-color: #3e946f !important; transition: 0.2s; }
+
+.current-crumb{
+  padding-left:30px;
+}
+
+
+
+

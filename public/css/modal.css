@@ -1,0 +1,19 @@
+
+.modal-header {
+    color:white;
+    margin-left:0px;
+    margin-right:-0.5px;
+    /*background-color: #29d159;*/
+    font-weight:bold;
+    background-color: #1b593e;
+}
+.modal-footer {
+    color:white;
+    margin-left:0px;
+    margin-right:-0.5px;
+    text-align:right;
+    /*background-color: #29d159;*/
+    background-color: #1b593e;
+}
+
+
