@@ -6,6 +6,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 ADD NEW EVALUATION TOOL
+                <span onclick="$('#addEvaluationToolModal').modal('hide');" class="close-span">&times;</span>
+            
             </div>
             <div class="modal-body" style="">
                 
@@ -20,6 +22,7 @@
            readonly>
     <input onkeyup="checkAddEvaluationForm()" class="form-control" id="add-tool-name" type="text" name="toolName" placeholder="Name of Evaluation Form"><br>
     <input onkeyup="checkAddEvaluationForm()" class="form-control" id="add-tool-desc" type="text" name="toolDesc" placeholder="Description"><br>
+    @if(Session::get('type')==="Director")
     <select name="programId" class="form-control">
     
         <option value="">-</option>
@@ -27,6 +30,9 @@
             <option value="{{$program->ProgramId}}">{{$program->ProgramName}}</option>
         @endforeach
     </select>
+    @elseif(Session::get('type')==="Coordinator")
+            <input type="hidden" name="programId" value="{{Session::get('programId')}}" >
+    @endif
     <br>
     <button class="blue-button" style="margin-left:40%;" id="add-evaluation-tool-button" type="button" onclick="this.disabled='true';addEvaluationForm()" disabled>
         SUBMIT

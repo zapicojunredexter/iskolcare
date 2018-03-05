@@ -5,6 +5,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 EDIT PROGRAM DETAILS
+                <span onclick="$('#editProgramModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body">
                 
@@ -73,11 +74,12 @@
 		    data: $("#editProgramForm").serialize(),
             type: "get", 
             success: function(response) {
-                alert("Successfully edited program details");
-                location.reload();
+                swal("Successfully edited program details","","success").then(()=>{location.reload();});
+
             },
             error: function(xhr) {
-                alert("Something went wrong!");
+                swal("Something went wrong!","","error").then(()=>{location.reload();});
+
             }
         });
     }

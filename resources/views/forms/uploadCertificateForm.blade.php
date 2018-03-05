@@ -2,7 +2,9 @@
     <div class="modal-dialog"  role="document">
         <div class="modal-content">
             <div class="modal-header">
-                UPLOAD CERTIFICATE TEMPLATE
+                UPLOAD CERTIFICATE TEMPLATE                
+                <span onclick="$('#chooseCertificateModal').modal('hide');" class="close-span">&times;</span>
+
             </div>
             <div class="modal-body">
                 
@@ -10,6 +12,7 @@
 
                 <form action="{{url('uploadCertificates')}}" id="uploadCertificateForm" method="post" enctype="multipart/form-data">
                     {{csrf_field()}}
+                    <input type="hidden" name="for" id="certificate-for" readonly>
                     <input type="hidden" name="id" readonly value="{{$activity->ActivityId}}">
                     <input type="file" name="photo" class="form-control" required>
                     <br>

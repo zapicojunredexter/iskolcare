@@ -111,6 +111,7 @@ class RegUsersController extends Controller
     }
     
     function getProfile(Request $request){
+        
         $notifId=$request->input('notifId');
         if(!empty($notifId)){
             DB::update("update notifications set Status=1 where NotificationId=?",[$notifId]);
@@ -150,12 +151,12 @@ class RegUsersController extends Controller
 
                 //TODO unya ni kai lisod
                 //query for activities person logged in is participating as
-                $upcomingAsVol = DB::select("select s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId from volunteers v, activities a,projects p,schedules s where v.ProgramId = a.ActivityId and s.ProgramId = a.ActivityId and a.ProjectId = p.ProjectId and a.ActivityStatus = ? and p.Status = ? and v.AccountId = ? and s.SchedDate > ? and v.VolunteerStatus group by s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId",["Approved","Approved",$id,date("Y-m-d"),1]);
-                $upcomingAsBen = DB::select("select s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId from beneficiaries b, activities a,projects p,schedules s where b.ProgramId = a.ActivityId and s.ProgramId = a.ActivityId and a.ProjectId = p.ProjectId and a.ActivityStatus = ? and p.Status = ? and b.AccountId = ? and s.SchedDate > ? and b.BenStatus = ? group by s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId",["Approved","Approved",$id,date("Y-m-d"),1]);
+                $upcomingAsVol = DB::select("select s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId from volunteers v, activities a,projects p,schedules s where v.ProgramId = a.ActivityId and s.ProgramId = a.ActivityId and a.ProjectId = p.ProjectId and a.ActivityStatus = ? and p.Status = ? and v.AccountId = ? and s.SchedDate >= ? and v.VolunteerStatus group by s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId",["Approved","Approved",$id,date("Y-m-d"),1]);
+                $upcomingAsBen = DB::select("select s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId from beneficiaries b, activities a,projects p,schedules s where b.ProgramId = a.ActivityId and s.ProgramId = a.ActivityId and a.ProjectId = p.ProjectId and a.ActivityStatus = ? and p.Status = ? and b.AccountId = ? and s.SchedDate >= ? and b.BenStatus = ? group by s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId",["Approved","Approved",$id,date("Y-m-d"),1]);
                 
                 $upcomingActivities = array();
                 if(session('type')==="Coordinator"){
-                    $upcomingAsCoo = DB::select("select s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId from activities a,projects p,schedules s where s.ProgramId = a.ActivityId and a.ProjectId = p.ProjectId and a.ActivityStatus = ? and p.Status = ? and s.SchedDate > ? and p.Level = ? and p.ProgramId = ? group by s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId",["Approved","Approved",date("Y-m-d"),"Program",session("programId")]);
+                    $upcomingAsCoo = DB::select("select s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId from activities a,projects p,schedules s where s.ProgramId = a.ActivityId and a.ProjectId = p.ProjectId and a.ActivityStatus = ? and p.Status = ? and s.SchedDate >= ? and p.Level = ? and p.ProgramId = ? group by s.SchedDate,a.ActivityName,a.ActivityId,p.ProjectName,p.Banner,p.ProjectId",["Approved","Approved",date("Y-m-d"),"Program",session("programId")]);
                     foreach($upcomingAsCoo as $uc){
                         $activity = new \stdClass();
                         $activity = $uc;
@@ -175,10 +176,14 @@ class RegUsersController extends Controller
                     $activity->As = "Beneficiary";
                     array_push($upcomingActivities,$activity);
                 }
+                    
+            
                 return View('profileDashBoard',['data'=>$account[0],'upcomingActivities'=>$upcomingActivities]);
                 
                 }else{
-                    echo "user not found";
+                    $message = "User Account not Found";
+                    return View('notFound',["message"=>$message]);
+        
                 }
             }else{
 
@@ -194,10 +199,13 @@ class RegUsersController extends Controller
     function changeDisplayPic(Request $request){
         //$img=$request->input('photo');
         //$img->move('img',$img->getClientOriginalName());
-        
-        if(empty(filesize($request->file('photo')))){
-            echo "file size too large";
-            return;
+        if(!empty(sizeof($request->file('images')))){
+            
+        }else{
+            if(empty(filesize($request->file('photo')))){
+                echo "file size too large";
+                return;
+            }   
         }
         if($request->input('for')==='RegUserDp'){
             $accountId=session('accountId');
@@ -213,7 +221,6 @@ class RegUsersController extends Controller
         }elseif($request->input('for')==='ChangeUniLogo'){
           
             $uniId=session('uniId');
-            echo "naa ngare";
             DB::update('update universities set UniLogo=? where UniId=?', [$uniId.'-university-logo-photo.jpg',session('uniId')]);
             $request->file('photo')->move('img\logos',$uniId.'-university-logo-photo.jpg');
             session(['pic'=>$uniId.'-university-logo-photo.jpg']);
@@ -234,33 +241,13 @@ class RegUsersController extends Controller
                 $project=DB::select("select * from projects where ProjectId=?",[$projectId]);
                 
                 
-                DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')." ".session('lastName')." changed the project banner of ".$project[0]->ProjectName, "getCoordinatorsProgramPage?id=".$project[0]->ProgramId,"Director",session('programUniId')]);
+                DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')." ".session('lastName')." changed the project banner of ".$project[0]->ProjectName, "getUniversityProgramsSpecific?id=".$project[0]->ProgramId,"Director",session('programUniId')]);
                 
                 
             }elseif(session('type')==='Director'){
                 
             }
         }elseif($request->input('for')==='uploadActivityPhotos'){
-         
-            /*$activityId = $request->input("activityId");
-            $pics = DB::select("select * from pictures where ActivityId = ? order by PictureId asc",[$activityId]);
-            print_r($pics);
-           //if(!empty($pics))
-             //   $id=$pics[sizeof($pics)-1]->PictureId+1;
-            //else
-              //  $id=1;
-            $actPicId=sizeof($pics)+1;
-            if(session("type")==="Director"){
-                $request->file('photo')->move('img\activities',$activityId.'-'.$actPicId.'-activity-photo.jpg');
-                $path = $activityId.'-'.$actPicId.'-activity-photo.jpg';
-                DB::insert('insert into pictures (FilePath,ActivityId,Status) values(?,?,?)',[$path,$activityId,1]);
-            }else{
-                $request->file('photo')->move('img\activities',$activityId.'-'.$actPicId.'-activity-photo.jpg');
-                $path = $activityId.'-'.$actPicId.'-activity-photo.jpg';
-                DB::insert('insert into pictures (FilePath,ActivityId,Status) values(?,?,?)',[$path,$activityId,0]);
-            }
-            */
-            //ari test
             $activityId = $request->input("activityId");
             $pics = DB::select("select * from pictures where ActivityId = ? order by PictureId asc",[$activityId]);
             $actPicId=sizeof($pics)+1;
@@ -269,38 +256,51 @@ class RegUsersController extends Controller
                 
                 $input=$request->all();
                 $images = array();
-                
+                $failCounter = 0;
                 if($files=$request->file("images")){
                     foreach($files as $file){
-                        $file->move('img\activities',$activityId.'-'.$actPicId.'-activity-photo.jpg');
-                        $path = $activityId.'-'.$actPicId.'-activity-photo.jpg';
-                        DB::insert('insert into pictures (FilePath,ActivityId,Status) values(?,?,?)',[$path,$activityId,1]);
-                        
-                        $actPicId++;
+                        if(empty(filesize($file))){
+                            echo "file size too large";
+                            $failCounter ++;
+                        }else{
+
+                            $file->move('img\activities',$activityId.'-'.$actPicId.'-activity-photo.jpg');
+                            $path = $activityId.'-'.$actPicId.'-activity-photo.jpg';
+                            DB::insert('insert into pictures (FilePath,ActivityId,Status) values(?,?,?)',[$path,$activityId,1]);
+
+                            $actPicId++;   
+                        }
                     }
+                    
                 }
+                echo $failCounter." failed uploads";
             }else{
                 $input=$request->all();
                 $images = array();
-                
+                $failCounter = 0;
                 if($files=$request->file("images")){
                     foreach($files as $file){
-                        $file->move('img\activities',$activityId.'-'.$actPicId.'-activity-photo.jpg');
-                        $path = $activityId.'-'.$actPicId.'-activity-photo.jpg';
-                        DB::insert('insert into pictures (FilePath,ActivityId,Status) values(?,?,?)',[$path,$activityId,0]);
-                        
-                        $actPicId++;
+                        if(empty(filesize($file))){
+                            echo "file size too large";
+                            $failCounter ++;
+                        }else{
+
+                            $file->move('img\activities',$activityId.'-'.$actPicId.'-activity-photo.jpg');
+                            $path = $activityId.'-'.$actPicId.'-activity-photo.jpg';
+                            DB::insert('insert into pictures (FilePath,ActivityId,Status) values(?,?,?)',[$path,$activityId,0]);
+
+                            $actPicId++;                        
+                        }
+                    }
+                    
                 }
+                echo $failCounter." failed uploads";
             }
-            
-            
-            
-            
-        }
+            return;
         
         }
         $request->input('for');
-    return back();
+        return back();
     }
     function editOrganizations(Request $request){
         $id=session('accountId');
@@ -350,7 +350,6 @@ class RegUsersController extends Controller
             $contPerson=$request->input('contPerson');
             $contPersonContNum=$request->input('contPersonContNum');
             
-            echo $gender;
             DB::update('update accounts set Name = ?,LastName=?,Password=?,ContactNumber=?,Address=?,EmailAddress=?,AccountType=?,Gender=?,ContPerson=?,ContPersonContNumber=?
                 where AccountId = ?', [$name,$lName,$password,$contactNumber,$address,$emailAddress,$accountType,$gender,$contPerson,$contPersonContNum,$id]);
             return back();
@@ -372,10 +371,9 @@ class RegUsersController extends Controller
         $madeByUniId = $request->input('madeByUniId');
         $type=session('accountType');
         if(strpos($type,'Volunteer')===0){
-            echo 'volunter ra sha';
             if($type === 'Volunteer - Faculty')
                 $type = 'Faculty';
-            elseif($type === 'Volunteer - Faculty')
+            elseif($type === 'Volunteer - Student')
                 $type = 'Student';
             else
                 $type = 'External';
@@ -388,7 +386,9 @@ class RegUsersController extends Controller
         }else{
             $type='External';
         }
-        DB::insert('insert into volunteers (ProgramId,AccountId,VolunteerStatus,Type) values (?, ?, ?, ?)', [$programId,$accountId,$status,$type]);
+        $checker = DB::select("select * from volunteers where AccountId = ? and ProgramId = ?",[$accountId,$programId]);
+        if(empty($checker))
+            DB::insert('insert into volunteers (ProgramId,AccountId,VolunteerStatus,Type) values (?, ?, ?, ?)', [$programId,$accountId,$status,$type]);
         return back();
     }
 
@@ -410,22 +410,21 @@ class RegUsersController extends Controller
         $type=$request->input('type');
         $type=session('accountType');
         if(strpos($type,'Beneficiary')===0){
-            echo 'beneficiary ra sha';
-
             if($type === 'Beneficiary - Leader')
                 $type = 'Leader';
             else
                 $type = 'Member';
         }else{
-            echo 'non beneficiary';
             $type='Member';
         }
         if(session('uniId') == $madeByUniId){
         }else{
-            $type='External';
+            $type='Member';
         }
-        echo $type;
-        DB::insert('insert into beneficiaries (ProgramId,AccountId,BenStatus,Type) values (?, ?, ?, ?)', [$programId,$accountId,$status,$type]);
+        
+        $checker = DB::select("select * from beneficiaries where AccountId = ? and ProgramId = ?",[$accountId,$programId]);
+        if(empty($checker))
+            DB::insert('insert into beneficiaries (ProgramId,AccountId,BenStatus,Type) values (?, ?, ?, ?)', [$programId,$accountId,$status,$type]);
         return back();
     }
     
@@ -454,7 +453,7 @@ class RegUsersController extends Controller
                 
                 
 
-                $activity->Schedules = DB::select("select * from schedules where ProgramId = ?",[$activity->ActivityId]);
+                $activity->Schedules = DB::select("select * from schedules where ProgramId = ? order by SchedDate",[$activity->ActivityId]);
 
                 $activity->Volunteers = DB::select("select * from volunteers v,accounts a,universities u where a.UniversityId = u.UniId and a.AccountId = v.AccountId and v.ProgramId = ?",[$activity->ActivityId]);
                 $activity->Beneficiaries = DB::select("select * from beneficiaries b ,accounts a,universities u where a.UniversityId = u.UniId and a.AccountId = b.AccountId and b.ProgramId = ?",[$activity->ActivityId]);
@@ -560,11 +559,12 @@ class RegUsersController extends Controller
                     }
                 }
                 //echo $canEdit;
-                
+            
                 
                 return View("getActivityPage",["activity"=>$activity,"canVolunteer"=>$canVolunteer,"canParticipate"=>$canParticipate,"canEdit"=>$canEdit,"evaluationTools"=>$evaluationTools]);
             }else{
-                echo "activity not found in db";
+                $message="activity not found in db";
+                return View('notFound',["message"=>$message]);
             }
         
     
@@ -575,6 +575,8 @@ class RegUsersController extends Controller
 	function fillUpEvaluationForm(Request $request){
         $relfId=$request->input("relfId");
         $releasedForm=DB::select("select * from releasedforms rf,activities ac where ac.ActivityId=rf.ActivityId and rf.ReleasedFormId=?",[$relfId]);
+        $notifId=$request->input("notifId");
+                    
         if(!empty($releasedForm)){
             $releasedForm=$releasedForm[0];
             $today = date("Y-m-d");
@@ -589,17 +591,22 @@ class RegUsersController extends Controller
                         $question->Choices = DB::select("select * from choices where QuestionId = ?",[$question->QuestionId]);
                     }
                     $releasedForm->Form=$form;
-                    $notifId=$request->input("notifId");
                     return View("forms.fillUpEvaluationForm",["releasedForm"=>$releasedForm,"notifId"=>$notifId]);
                 }else{
-                    echo "form does not exists";
+                    DB::update("update notifications set Status = 1 where NotificationId = ?",[$notifId]);
+                    $message= "Form does not Exists";
+                    return View('notFound',["message"=>$message]);
                 }
             }else{
-                echo "Released form is currently unavailable";
+                DB::update("update notifications set Status = 1 where NotificationId = ?",[$notifId]);
+                $message= "Filling up of Evaluation Form has been Closed";
+                return View('notFound',["message"=>$message]);
             }
             
         }else{
-            echo "released form does not exists";
+            DB::update("update notifications set Status = 1 where NotificationId = ?",[$notifId]);
+            $message = "Released Form does not Exists";
+            return View('notFound',["message"=>$message]);
         }
 			
 	}
@@ -608,12 +615,19 @@ class RegUsersController extends Controller
         
         $relfId=$request->input("relfId");
         $releasedForm=DB::select("select * from releasedforms where ReleasedFormId = ?",[$relfId]);
-        DB::update("update releasedforms set totalResponses = totalResponses + 1 where ReleasedFormId = ?",[$relfId]);
         $releasedForm=$releasedForm[0];
         $form=DB::select("select * from EvaluationTools where EvaluationFormId = ?",[$releasedForm->FormId]);
         $form=$form[0];
         $releasedForm->Form=$form;
         $releasedForm->Form->Questions = DB::select("select * from questions where FormId = ?",[$form->EvaluationFormId]);
+        
+        $submittedAnswers = DB::select("select count(SubmittedAnswersId) as counter from submittedanswers where SubmittedBy = ?",[session("accountId")]);
+        if($submittedAnswers[0]->counter>0){
+            $message="Already Submitted Answers for this Form";
+            return View('notFound',["message"=>$message]);
+        
+        }
+        DB::update("update releasedforms set totalResponses = totalResponses + 1 where ReleasedFormId = ?",[$relfId]);
         
         foreach($releasedForm->Form->Questions as $question){
             if($question->QuestionType==="Checkbox"){

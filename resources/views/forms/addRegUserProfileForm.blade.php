@@ -3,6 +3,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 ADD NEW USER
+                <span onclick="$('#addRegUserModal').modal('hide');" class="close-span">&times;</span>
+                
             </div>
             <div class="modal-body" style="">
                     

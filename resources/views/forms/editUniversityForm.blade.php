@@ -3,6 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 EDIT UNIVERSITY DETAILS
+                <span onclick="$('#edit-university-modal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body">
 			<form id="editUniversityForm" onsubmit="return false;" method="post">
@@ -68,12 +69,11 @@
 					<div class="col-sm-9">
 						
 					</div>
-					<div class="col-sm-3">
-						<button type="button" onclick="this.disabled='true';editUniversity();" class="blue-button">SAVE</button>
-					</div>
 				</div>
 
-                                    
+                          
+                <button type="button" onclick="this.disabled='true';editUniversity();" class="blue-button" style="margin-left:40%;">SAVE</button>
+					        
 			</form>
             </div>
             <div class="modal-footer">

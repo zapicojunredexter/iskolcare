@@ -5,6 +5,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 CHANGE COVER PHOTO
+                
+                <span onclick="$('#editCoverPhotoModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
                 {{csrf_field()}}

@@ -27,7 +27,7 @@
 
             </div>
             <div class="row" id="if-add" style="display:none;">
-                <input type="button" value="Add More Option" onclick="addMoreCheckChoices()" class="btn btn-primary">
+                <img src="default-img/add.png" style="width:25px;" title="Add more Choices" onclick="addMoreCheckChoices()" >
             </div>
         </div>
     </div>
@@ -130,7 +130,4 @@ Select Question Type<br>
         $('#if-add').css('display','block');
     }
 
-    $('#addQuestionModal').on("hide.bs.modal",function(){
-        alert('giclose');
-    });
 </script>

@@ -17,10 +17,37 @@ class SubscribersController extends Controller
        }
     }
 
+    function changeAccountType(Request $request){
+        if(self::validate()){
+            
+            $accId = $request->input('accountId');
+            $accType = $request->input('accountType');
+            
+            DB::update("update accounts set AccountType = ? where AccountId = ?",[$accType,$accId]);
+            echo "Successfully Changed Account Type!";
+        }else{
+            return View('RestrictedAccess');
+        }
+    }
     function chooseFromSubscription(Request $request){
         if(self::validate()){
             $subscriptions = DB::select("select * from subscriptions");
             return View('chooseFromSubscription',["subscriptions"=>$subscriptions]);
+        }else{
+            return View('RestrictedAccess');
+        }
+    }
+    function editSubscriberAccountDetails(Request $request){
+        if(self::validate()){
+            $password=$request->input('password');
+            $contactNumber=$request->input('contactNumber');
+            $address=$request->input('address');
+            $emailAddress=$request->input('emailAddress');
+            $id=session('accountId');
+            
+            DB::update("update subscribers set Password=?,ContactNumber=?,Address=?,EmailAddress=? where SubscriberId = ?",[$password,$contactNumber,$address,$emailAddress,$id]);
+            
+            echo "Successfully Edited Contact Details";
         }else{
             return View('RestrictedAccess');
         }
@@ -30,6 +57,9 @@ class SubscribersController extends Controller
             $id = $request->input("accId");
             
             DB::delete("delete from accounts where AccountId = ?",[$id]);
+            DB::delete("delete from coordinators where AccountId = ?",[$id]);
+            DB::delete("delete from beneficiaries where AccountId = ?",[$id]);
+            DB::delete("delete from volunteers where AccountId = ?",[$id]);
             //DB::delete("delete from beneficiaries where AccountId = ?",[$id]);
             //DB::delete("delete from volunteers where AccountId = ?",[$id]);
             //DB::delete("delete from coordinators where AccountId = ?",[$id]);
@@ -170,6 +200,8 @@ class SubscribersController extends Controller
             $program = DB::select("select * from programs where ProgramId = ?",[$id]);
             DB::delete('delete from Programs where ProgramId=?',[$id]);
             DB::delete('delete from Coordinators where ProgramId=?',[$id]);
+            $project=DB::select("select ProjectId from projects where ProgramId = ? and Level = ?",[$id,"Program"]);
+            DB::delete('delete from projects where ProgramId = ? and Level = ?',[$id,"Program"]);
             return redirect('getUniversityProfile?id='.$program[0]->UniversityId);
                 
         }else{
@@ -192,7 +224,7 @@ class SubscribersController extends Controller
                 DB::insert('insert into coordinators (ProgramId,isActive,AccountId) values (?, ?, ?)', [$programId,$isActive,$accountId]);
             
                 DB::insert("insert into notifications (Description,Status,LinksTo,Recipient,RecipientId) values(?,?,?,?,?)",["You have been assigned as a Coordinator of ".$uni[0]->UniName."'s ".$programs[0]->ProgramName.".",0,"getUniversityProgramsSpecific?id=".$programId,"Registered User",$accountId]);
-                echo "Successfully added a news coordinator";
+                echo "Successfully added a new coordinator";
             }else{
                 $flag = 0;
                 $flag1 = 0;
@@ -355,6 +387,7 @@ class SubscribersController extends Controller
         $id=$request->input('id');
         $project = DB::select("select * from projects where ProjectId = ?",[$id]);
         DB::delete('delete from projects where ProjectId=?',[$id]);	
+        DB::delete('delete from activities where ProjectId = ?',[$id]);
         if(!empty($project)){
             if($project[0]->Level === "Institution"){
                 return redirect('getUniversityProfile?id='.$project[0]->ProgramId);
@@ -448,7 +481,6 @@ class SubscribersController extends Controller
             $activityIds=$request->input('activityIds');
             $status = "Approved";
             foreach($activityIds as $activityId){
-                echo $activityId." -- <br>";
                 DB::update('update activities set ActivityStatus = ? where ActivityId = ?',[$status,$activityId]);
             }
     
@@ -473,8 +505,9 @@ class SubscribersController extends Controller
             $activityIds=$request->input('activityIds');
             $status = "Approved";
             foreach($activityIds as $activityId){
-                echo $activityId." -- <br>";
                 DB::delete('delete from activities where ActivityId = ?',[$activityId]);
+                DB::delete('delete from volunteers where ProgramId = ?',[$activityId]);
+                DB::delete('delete from beneficiaries where ProgramId = ?',[$activityId]);
             }
             
             if($status==='Approved'){
@@ -522,7 +555,6 @@ class SubscribersController extends Controller
             $projectIds=$request->input('projectIds');
             $status = "Approved";
             foreach($projectIds as $projectId){
-                echo $projectId." -- <br>";
                 DB::delete('delete from projects where ProjectId = ?',[$projectId]);
             }
             

@@ -10,6 +10,9 @@
                 console.log(response);
                 if(response.QuestionType==="Open"){
                     $('#is-open-div').css('display','none');
+                }else{
+                    $('#is-open-div').css('display','block');
+                    
                 }
                  $('#choices-div').html("");
 
@@ -23,13 +26,12 @@
         });
     }
     function submitQuestionChanges(){
-        if(confirm("Are you sure you want to edit Question Details? doing so might blah blah blah")){    
+        if(true){    
             $.ajax({
                 url: "{{url('editQuestion')}}",
                 type: "get",
                 data: $('#editQuestionForm').serialize(), 
                 success: function(response) {
-                    alert("successfully edited question details");
                     location.reload();
                 },
                 error: function(xhr) {
@@ -40,7 +42,6 @@
         }
     }
     function addEditQuestionChoices(){
-        alert(41);
         $('#choices-div').append("<input class='form-control' type='text' name='choice[]' value=''>");
                 
     }
@@ -79,7 +80,10 @@
                         <b>Choices:</b>
                         
                       <br>
-                      <button type="button" onclick="addEditQuestionChoices();">Add choices</button>
+                        <img src="default-img/add.png" style="width:25px;" onclick="addEditQuestionChoices();">
+                        <!--
+                        <button type="button" onclick="addEditQuestionChoices();">Add choices</button>
+                        -->
                     </div>
                     <div class="col-sm-8" id="choices-div">
                     </div>

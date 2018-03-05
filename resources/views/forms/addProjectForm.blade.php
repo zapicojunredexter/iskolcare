@@ -3,6 +3,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 ADD NEW PROJECT
+                
+                <span onclick="$('#addProjectModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
                     
@@ -19,7 +21,7 @@
         <textarea name="projectDescription" onkeyup="checkAddProgramProject();" id="project-desc" class="form-control" placeholder="Project Description"></textarea>
         
 		<input type="hidden" name="programId" value="{{$program->ProgramId}}" class="form-control" readonly>
-            
+        <br>
        <button id="add-program-project" style="margin-left:40%;" class="blue-button" onclick="this.disabled='true';addProject();" disabled>SUBMIT</button>
             
             
@@ -88,11 +90,15 @@
                 success: function(response) {
                 //location.reload();
                     if(response.indexOf("Successfully added new project")===0){
-                        alert("Successfully added new project");
-                        var projId=response.substring(30,response.length);
+                        
+                        swal("Successfully added new project","","success").then(()=>{
+                            var projId=response.substring(30,response.length);
                     
-                        window.location.href="{{url('getUniversityProject')}}?id="+projId+"#click-change-cover-photo";
-                    }else{
+                            window.location.href="{{url('getUniversityProject')}}?id="+projId+"#click-change-cover-photo";
+                    
+                        });
+
+                        }else{
                         alert(response);
                     }
                 },

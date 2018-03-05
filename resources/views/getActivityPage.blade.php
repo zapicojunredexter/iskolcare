@@ -7,6 +7,16 @@
 </head>
 
 <body>
+    <?php
+        $currentDate = date("Y-m-d");
+        $hasUpcomingSched = false;
+        foreach($activity->Schedules as $schedule){
+            if($schedule->SchedDate>$currentDate){
+                $hasUpcomingSched = true;
+            }
+        }
+    
+    ?>
 <!--
 echo {{URL::previous()}}
 <ul class="breadcrumb">
@@ -66,6 +76,9 @@ echo {{URL::previous()}}
                 <div class="container-fluid" style="padding:0px;">
 				
                     <!--start sa activity details-->
+                    <!--
+                    {{date('h:i:sa')}}
+-->
                     <div class="row" style="background-color:white;padding:30px;">
                         <div class="col-sm-1">
                             <img src="img/logos/programs/{{$activity->Banner}}" alt="activity-logo"  style="width:70px;">
@@ -92,7 +105,7 @@ echo {{URL::previous()}}
                             <div class="row">
                                 @if($canEdit === 1)                 
                                 <div class="col-sm-3">
-                                    <div>
+                                    <div>   
                                         <img data-toggle="dropdown"  class="dropdown" src="default-img/edit.png" style="width:20px;" alt="edit">
                                         <ul class="dropdown-menu dropdown-menu-right">
                                             <li class="dropdown-item" data-toggle="modal" data-target="#editActivityModal">Edit Activity Details</li>
@@ -103,49 +116,65 @@ echo {{URL::previous()}}
                                         </ul>
                                     </div>
                                 </div>
-                                @if((Session::get('type') === "Director")||(Session::get('type')==="Coordinator" && $activity->ActivityStatus === "Pending for Add"))
-                                <div class="col-sm-3">
-                                    <img data-toggle="tooltip" title="Delete this Activity" onclick="deleteThisActivity({{$activity->ActivityId}})" src="default-img/trash.png" style="width:20px;" alt="edit">                  
-                                </div>
-                                <script>
-                                    function deleteThisActivity(actId){
-                                        if(confirm("Are you sure you want to delete this activity?")){
-                                            //alert(actId);
-                                            window.location.href="{{url('deleteActivity')}}?id="+actId;
+                                    @if((Session::get('type') === "Director")||(Session::get('type')==="Coordinator" && $activity->ActivityStatus === "Pending for Add"))
+                                    <div class="col-sm-3">
+                                        <!--
+                                        <img data-toggle="tooltip" title="Delete this Activity" onclick="deleteThisActivity({{$activity->ActivityId}})" src="default-img/trash.png" style="width:20px;" alt="edit">
+                                        -->
+                                    </div>
+                                    <script>
+                                        function deleteThisActivity(actId){
+                                            if(confirm("Are you sure you want to delete this activity?")){
+                                                //alert(actId);
+                                                window.location.href="{{url('deleteActivity')}}?id="+actId;
+                                            }
                                         }
-                                    }
-                                </script>
-                                @endif
+                                    </script>
+                                    @endif
                                 
                                 @else
                                 <!-- TODO check if pwede ba-->
-                                        
-                                @if($canParticipate===1 && $canVolunteer === 1)
-                                    
-                                    @if($activity->isExclusive === 1)
-                                        @if($activity->MadeBy->UniId === Session::get('uniId'))
-                                            <a href="{{url('/addVolunteer')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
-                                                <button style="padding: 8px; background: rgb(129,206,151);color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="vol">VOLUNTEER</button>
-                                            </a>
-                                            <a href="{{url('addBeneficiary')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
-                                                <button style="padding: 8px;background: #2196F3;color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="par">PARTICIPATE</button>
-                                            </a>
-                                        @else
-                                            <a style="padding: 8px;background: #f2575f;color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;">This Activivity is Exclusive</a>
-                                        @endif
-                                    @else
-                                        <a href="{{url('/addVolunteer')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
-                                            <button style="padding: 8px; background: rgb(129,206,151);color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="vol">VOLUNTEER</button>
-                                        </a>
-                                        <a href="{{url('addBeneficiary')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
-                                            <button style="padding: 8px;background: #2196F3;color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="par">PARTICIPATE</button>
-                                        </a>  
-                                    @endif
-                                @endif               
+                                    @if($hasUpcomingSched)
+                                        @if($canVolunteer === 0 && Session::get('type')==="Registered User")
                                 
+                                            <button style="padding: 8px; background: rgb(129,206,151);color: white;font-size: 15px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="vol">
+                                                Enlisted as Volunteer
+                                            </button>
+                                        @endif
+                                        @if($canParticipate === 0 && Session::get('type')==="Registered User")
+                                
+                                            <button style="padding: 8px;background: #2196F3;color: white;font-size: 15px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="par">
+                                            Enlisted as Beneficiary
+                                            </button>
+                                        @endif
+                                        @if($canParticipate===1 && $canVolunteer === 1)
+
+                                            @if($activity->isExclusive === 1)
+                                                @if($activity->MadeBy->UniId === Session::get('uniId'))
+                                                    <a href="{{url('/addVolunteer')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
+                                                        <button style="padding: 8px; background: rgb(129,206,151);color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="vol">VOLUNTEER</button>
+                                                    </a>
+                                                    <a href="{{url('addBeneficiary')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
+                                                        <button style="padding: 8px;background: #2196F3;color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="par">PARTICIPATE</button>
+                                                    </a>
+                                                @else
+                                                    <a style="padding: 8px;background: #f2575f;color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;">This Activivity is Exclusive</a>
+                                                @endif
+                                            @else
+                                                <a href="{{url('/addVolunteer')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
+                                                    <button style="padding: 8px; background: rgb(129,206,151);color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="vol">VOLUNTEER</button>
+                                                </a>
+                                                <a href="{{url('addBeneficiary')}}?programId={{$activity->ActivityId}}&madeByUniId={{$activity->MadeBy->UniId}}">
+                                                    <button style="padding: 8px;background: #2196F3;color: white;font-size: 10px;border: 1px solid #f2f2f2;border-left: none;cursor: pointer;margin-top: 0;" class="par">PARTICIPATE</button>
+                                                </a>  
+                                            @endif
+                                        @endif               
+                                    @endif
                                 @endif
                                 <div class="col-sm-3">
-                                    <a href="#" onclick="window.open('fb', 'newwindow', 'width=600, height=550'); return false;"><img style="width:30px;" src="default-img/fb.png"></a>
+                                    
+                                    
+                                    <a href="#" onclick="window.open('fb?message={{$activity->ActivityName}}&link={{Request::getPathInfo() . (Request::getQueryString() ? ('?' . Request::getQueryString()) : '')}}', 'newwindow', 'width=600, height=550'); return false;"><img style="width:30px;" src="default-img/fb.png"></a>
                                 </div>
                             </div>
                                 
@@ -324,14 +353,11 @@ if($volunteerCount + $beneficiaryCount !== 0){
                                             <div class="col-sm-8">{{$activity->TargetAudience}}</div>
                                         </div>
                                         <div class="row" style="margin-top:20px;">
-                                            <div class="col-sm-4"><b>Exclusive for {{$activity->MadeBy->UniName}} Members only</b></div>
+                                            <div class="col-sm-4"><b>Exclusive for {{$activity->MadeBy->UniName}} members only</b></div>
                                             <div class="col-sm-8">{{$activity->isExclusive === 1?'Yes':'No'}}</div>
                                         </div>
+                                        
                                         @if($canEdit === 1)
-                                            <div class="row" style="margin-top:20px;">
-                                                <div class="col-sm-4"><b>Project Status</b></div>
-                                                <div class="col-sm-8">{{$activity->Status}}</div>
-                                            </div>
                                             <div class="row" style="margin-top:20px;">
                                                 <div class="col-sm-4"><b>Activity Status</b></div>
                                                 <div class="col-sm-8">{{$activity->ActivityStatus}}</div>
@@ -408,7 +434,7 @@ if($volunteerCount + $beneficiaryCount !== 0){
                     <div id="photos-tab" style="display:none;">
                         <h2>PHOTOS</h2>
                         @if($activity->ActivityStatus === "Approved" && $activity->Status === "Approved")
-                            <button data-toggle="modal" data-target="#uploadNewPhotosModal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;">+ Upload</button>
+                            <button data-toggle="modal" data-target="#uploadNewPhotosModal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;">Upload</button>
                         @else
                             @if($activity->ActivityStatus!=="Approved")
                                 <button>Cannot upload photos to a pending Activity</button>
@@ -445,7 +471,7 @@ if($volunteerCount + $beneficiaryCount !== 0){
                             @endforeach
                                 <div class="col-sm-12">
                                 
-                                    <input type="submit" value="+ Approve" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;">
+                                    <input type="submit" value="Approve" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;">
                                 </div>
                            
                             </div>
@@ -477,7 +503,7 @@ if($volunteerCount + $beneficiaryCount !== 0){
                         
                         @if($activity->ActivityStatus === "Approved" && $activity->Status === "Approved")
                             <a href="#" data-toggle="modal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;" data-target="#assignEvaluationToolModal">
-                                + Release Evaluation Tool
+                                Release Evaluation Tool
                             </a>
                         @else
                             @if($activity->ActivityStatus!=="Approved")
@@ -553,19 +579,23 @@ if($volunteerCount + $beneficiaryCount !== 0){
                     <div id="participants-tab" style="display:none;">
                         <h2>PARTICIPANTS</h2>
 
+                        <a href="{{url('manageAttendance')}}?ai={{$activity->ActivityId}}"><button data-toggle="modal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;">Manage Attendance</button></a>
+                        <br><br>    
                             <div class="nav nav-tabs justify-content-start" role="tablist">
-                                <a class="nav-item nav-link active" href="#volunteer-tab" data-toggle="tab" style="color:black;padding:20px;text-align:center;width:33%" role="tab">Volunteers</a>
-                                <a class="nav-item nav-link" href="#benef-tab" data-toggle="tab" style="color:black;padding:20px;text-align:center;width:33%" role="tab">Beneficiaries</a>
-                                <a class="nav-item nav-link" href="#requests-tab" data-toggle="tab" style="color:black;padding:20px;text-align:center;width:33%" role="tab">Requests to join</a>
+                                <a class="nav-item nav-link active" href="#volunteer-tab" data-toggle="tab" role="tab" style="color:black;padding:20px;text-align:center;width:33%;font-weight:bold;" >Volunteers</a>
+                                <a class="nav-item nav-link" href="#benef-tab" data-toggle="tab" style="color:black;padding:20px;text-align:center;width:33%;font-weight:bold;" role="tab">Beneficiaries</a>
+                                <a class="nav-item nav-link" href="#requests-tab" data-toggle="tab" style="color:black;padding:20px;text-align:center;width:33%;font-weight:bold;" role="tab">Requests to join</a>
                             </div>
                             <div class="tab-content" style="background-color:white;padding:20px;">
                             
 
                             <div id="volunteer-tab" class="tab-pane fade show active" role="tabpanel">
                                 @if($activity->ActivityStatus === "Approved" && $activity->Status === "Approved")
-                                <button data-toggle="modal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;" data-target="#addNewVolunteersModal">+ Add Volunteers</button>
-                                
-                                <a href="{{url('manageAttendance')}}?ai={{$activity->ActivityId}}"><button data-toggle="modal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;">+ Manage Attendance</button></a>
+                                    @if($hasUpcomingSched)
+                                    
+                                        <button data-toggle="modal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;" data-target="#addNewVolunteersModal">+ Add Volunteers</button>
+                                    
+                                    @endif
                                 @else
                                     @if($activity->ActivityStatus!=="Approved")
                                         <button>Cannot add volunteers to a pending Activity</button>
@@ -579,9 +609,11 @@ if($volunteerCount + $beneficiaryCount !== 0){
                             <div id="benef-tab" class="tab-pane fade show" role="tabpanel">
                                 
                                 @if($activity->ActivityStatus === "Approved" && $activity->Status === "Approved")
-                                    <button data-toggle="modal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;" data-target="#addNewBeneficiariesModal">
-                                        + Add Beneficiaries
-                                    </button>
+                                    @if($hasUpcomingSched)
+                                        <button data-toggle="modal" style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;" data-target="#addNewBeneficiariesModal">
+                                            + Add Beneficiaries
+                                        </button>
+                                    @endif
                                 @else
                                     @if($activity->ActivityStatus!=="Approved")
                                         <button>Cannot add beneficiaries to a pending Activity</button>
@@ -605,7 +637,7 @@ if($volunteerCount + $beneficiaryCount !== 0){
                                     @foreach($activity->Volunteers as $volunteer)
                                         @if($volunteer->VolunteerStatus === 0)
                                         <tr>
-                                            <td>{{$volunteer->Name}} {{$volunteer->LastName}}</td>
+                                            <td><a href="{{url('viewProfile')}}?accid={{$volunteer              ->AccountId}}">{{$volunteer->Name}} {{$volunteer->LastName}}</a></td>
                                             <td>{{$volunteer->UniName}}</td>
                                             <td>{{$volunteer->Address}}{{$volunteer->VolunteerStatus}}</td>
                                             <td>{{$volunteer->Type}} Volunteer</td>
@@ -616,17 +648,19 @@ if($volunteerCount + $beneficiaryCount !== 0){
                                     @foreach($activity->Beneficiaries as $beneficiary)
                                         @if($beneficiary->BenStatus === 0)
                                         <tr>
-                                            <td>{{$beneficiary->Name}} {{$beneficiary->LastName}}</td>
+                                            <td><a href="{{url('viewProfile')}}?accid={{$beneficiary->AccountId}}">{{$beneficiary->Name}} {{$beneficiary->LastName}}</a></td>
                                             <td>{{$beneficiary->UniName}}</td>
                                             <td>{{$beneficiary->Address}}{{$beneficiary->BenStatus}}</td>
-                                            <td>{{$beneficiary->Type}} Beneficiary</td>
+                                            <td>{{$beneficiary->Type}}</td>
                                             <td><input type="checkbox" name="benIds[]" value="{{$beneficiary->BeneficiaryId}}"></td>
                                         </tr>
                                         @endif
                                     @endforeach
                                     </table>
-                                    <button type="button" onclick="addApprovedParticipants()">APPROVE</button>
-                                    <button type="button" onclick="deletePendingParticipants()">DELETE</button>
+                                    @if($hasUpcomingSched)
+                                        <button type="button" onclick="addApprovedParticipants()" class="blue-button">APPROVE</button>
+                                        <button type="button" onclick="deletePendingParticipants()" class="blue-button">DELETE</button>
+                                    @endif
                                 </form>
                                                             
                                 <script>
@@ -640,7 +674,7 @@ if($volunteerCount + $beneficiaryCount !== 0){
                                                 data: $("#requests-participants-form").serialize(),
                                                 success: function(response) {
                                                 alert("successfully added participants");
-                                                location.reload();
+                                                location.reload(true);
                                                 },
                                                 error: function(xhr) {
                                                     alert("Data: error");

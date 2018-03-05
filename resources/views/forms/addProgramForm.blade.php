@@ -3,22 +3,21 @@
         <div class="modal-content">
             <div class="modal-header">
                 ADD UNIVERSITY PROGRAM
+                
+                <span onclick="$('#addProgramModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
-            @if(sizeof($university->Programs) < Session::get('maxPrograms'))
             <form method="post" id="addProgramForm" onsubmit="return false;">
             {{csrf_field()}}
-            <input type="text" placeholder="Program name" name="programName" id="program-name" class="form-control"><br>
-    <textarea type="text" name="programDescription" class="form-control" id="program-desc" placeholder="Program Description"></textarea><br>
-    <textarea type="text" name="programObjective" class="form-control" id="program-objec" placeholder="Objective(s)"></textarea><br>
+    <input onkeyup="checkAddProgram()" type="text" placeholder="Program name" name="programName" id="program-name" class="form-control"><br>
+    <textarea onkeyup="checkAddProgram()" type="text" name="programDescription" class="form-control" id="program-desc" placeholder="Program Description"></textarea><br>
+    <textarea onkeyup="checkAddProgram()" type="text" name="programObjective" class="form-control" id="program-objec" placeholder="Objective(s)"></textarea><br>
     
     <input type="hidden" placeholder="universityId" name="universityId" value="{{$university->UniId}}" readonly>
     
-                <input type="button" onclick="addProgram()" value="SUBMIT">
+                <input type="button" id="addProgramButton" class="blue-button" style="margin-left:45%;" onclick="addProgram()" value="SUBMIT" disabled>
                 </form>
-                @else
-                    Your account has reached its 3 max programs cap. click <a href="#">here</a> to add more.
-                @endif
+                
             </div>
             <div class="modal-footer">
             </div>
@@ -31,6 +30,18 @@
         document.getElementById('addProgramForm').style.display = "none";
     }
     }*/
+    function checkAddProgram(){
+        var progName,progDesc,progObj;
+        progName = $('#program-name').val();
+        progDesc = $('#program-desc').val();
+        progObj = $('#program-objec').val();
+        if(progName.trim()!=="" && progDesc.trim()!=="" && progObj.trim()!==""){
+            $('#addProgramButton').prop("disabled",false);
+        }else{
+            $('#addProgramButton').prop("disabled",true);
+            
+        }
+    }
     function addProgram(){
         var progName,progDesc,progObj;
         progName = $('#program-name').val();
@@ -43,13 +54,18 @@
                 type: "post", 
                 success: function(response) {
                     if(response.indexOf("Successfully added new program")===0){
-                        alert("Successfully added new program");
-                        var progId=response.substring(30,response.length);
-                    
-                        window.location.href="{{url('getUniversityProgramsSpecific')}}?id="+progId+"#click-change-program-logo";
-                    }else{
-                        alert(response);
-                    }
+                        swal("Successfully added new program","","success").then(()=>{
+                            var progId=response.substring(30,response.length);
+
+                            window.location.href="{{url('getUniversityProgramsSpecific')}}?id="+progId+"#click-change-program-logo";
+                        });
+
+
+                        }else{
+                            swal(response,"","error").then(()=>{$('#addProgramButton').prop('disabled',false);});
+
+
+                        }
                     //if(response === "Successfully added new program");
                     //location.reload();
                 },

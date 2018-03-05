@@ -10,7 +10,8 @@
     @foreach($activity->Beneficiaries as $beneficiary)
     @if($beneficiary->Status===1)
         <tr>
-            <td><a>{{$beneficiary->Name}}</a></td>
+            <td>
+                <a href="{{url('viewProfile')}}?accid={{$beneficiary->AccountId}}">{{$beneficiary->Name}}</a></td>
             <td>{{$beneficiary->UniName}}</td>
             <td>{{$beneficiary->Address}}</td>
             <td>{{$beneficiary->Type}}</td>

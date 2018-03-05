@@ -19,6 +19,9 @@
             @include('includes.superAdminSideBar')
         @endif
         <div class="main-panel">
+            <?php
+                $label = "My Profile";
+            ?>
             @if(Session::get('type')!=='Super Admin')
                 @include('includes.regUserHeader')
             @else
@@ -39,21 +42,10 @@
                     <div class="row">
 				
                        <!--start sa if admin-->
+                        <div class="container">
                         @if(Session::get('type')==="Super Admin")
+                        
                             <h1>LOGGED IN AS ADMIN</h1>
-
-                            <table class="table table-striped">
-                                <tr>
-                                    <th>University Name</th>
-                                    <th>Transaction Date</th>
-                                </tr>
-                                @foreach($subscriptionTransctions as $transac)
-                                <tr>
-                                    <td>{{$transac->UniName}}</td>
-                                    <td>{{$transac->TransactionDate}}</td>
-                                </tr>
-                                @endforeach
-                            </table>
              
                             <!--start sa chart-->
                             <h3>TRANSACTION HISTORY</h3>
@@ -165,7 +157,21 @@
                             <!--end sa chart-->
 
 
+                            <table class="table table-striped">
+                                <tr style="background-color:#1b593e;color:white;">
+                                    <th>University Name</th>
+                                    <th>Transaction Date</th>
+                                </tr>
+                                @foreach($subscriptionTransctions as $transac)
+                                <tr>
+                                    <td>{{$transac->UniName}}</td>
+                                    <td>{{$transac->TransactionDate}}</td>
+                                </tr>
+                                @endforeach
+                            </table>
+
                         @endif
+                        </div>
                         <!--end sa if admin-->
     
 					</div>
@@ -212,8 +218,63 @@
 			<!-- end sa footer-->
         </div>
     </div>
-    @include('includes.scripts')
     
+<script src="js/plugins/chartist.min.js"></script>
+<!--  Notifications Plugin    -->
+<script src="js/plugins/bootstrap-notify.js"></script>
+    <script src="js/demo.js"></script>
+    @include('includes.scripts')
+    <script type="text/javascript">
+
+        $(document).ready(function() {
+                @if(!empty($upcomingActivities))
+				@foreach($upcomingActivities as $upcAct)
+                    <?php
+
+                        $date1 = new \DateTime(date("Y-m-d"));
+                        $date2 = new \DateTime($upcAct->SchedDate);
+                        $dif = $date1->diff($date2);
+                        $difference = $dif->format("%R%a days");
+                        if($difference<3){
+                            if($difference === "+0 days"){
+                               echo "demo.showNotification('top','left',`Reminder! The $upcAct->ActivityName Activity is today!`);";    
+                            }elseif($difference === "+1 days"){
+                               echo "demo.showNotification('top','left',`Reminder! The $upcAct->ActivityName Activity will be tomorrow!`);";
+                            }else{
+                                echo "demo.showNotification('top','left',`Reminder! The $upcAct->ActivityName Activity will be in $difference!`);";
+                            }
+                        }
+                    ?>
+                @endforeach
+                @endif
+                @if(!empty($upcomingInstLevel))
+                    @foreach($upcomingInstLevel as $upcAct)
+                         <?php
+
+                            $date1 = new \DateTime(date("Y-m-d"));
+                            $date2 = new \DateTime($upcAct->SchedDate);
+                            $dif = $date1->diff($date2);
+                            $difference = $dif->format("%R%a days");
+                            if($difference<3){
+                                if($difference === "+0 days"){
+                                   echo "demo.showNotification('top','left',`Reminder! The $upcAct->ActivityName Activity is today!`);";    
+                                }elseif($difference === "+1 days"){
+                                   echo "demo.showNotification('top','left',`Reminder! The $upcAct->ActivityName Activity will be tomorrow!`);";
+                                }else{
+                                    echo "demo.showNotification('top','left',`Reminder! The $upcAct->ActivityName Activity will be in $difference!`);";
+                                }
+                            }
+                        ?>
+                    @endforeach
+                @endif
+            // Javascript method's body can be found in assets/js/demos.js
+            /*demo.initDashboardPageCharts();
+
+            demo.showNotification('top','left','haha<a href="{{url('logout')}}">fill up</a>')
+            demo.showNotification();*/
+
+        });
+    </script>
 </body>
 
 

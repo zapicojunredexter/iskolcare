@@ -11,7 +11,9 @@
                 @if($volunteer->VolunteerStatus===1)
         <tr>
             <td>
+                <a href="{{url('viewProfile')}}?accid={{$volunteer->AccountId}}">
                 {{$volunteer->Name}} {{$volunteer->LastName}}
+                </a>
             </td>
             <td>
                 {{$volunteer->UniName}}

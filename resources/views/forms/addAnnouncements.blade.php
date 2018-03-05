@@ -3,6 +3,8 @@
         <div class="modal-content" style="">
             <div class="modal-header">
                 ADD ANNOUNCEMENT
+                <span onclick="$('#addAnnouncementModal').modal('hide');" class="close-span">&times;</span>
+            
             </div>
             <div class="modal-body" style="">
                 <form id="add-new-announcement-form" method="get" onsubmit="return false;">

@@ -25,7 +25,7 @@
 
 <div style="margin-top: 20px;">
 <h2 style="font-weight:bold;">{{$data->Name}} {{$data->LastName}}</h2>
-{{$data->Username}}	
+{{$data->EmailAddress}}	
 </div> 
 <br>
 	<div class="container">
@@ -81,7 +81,7 @@
 				</div>
 				<div class="row">
 					<div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>Gender</b></div>
-					<div class="col-sm-8" style="padding-top:20px;padding-bottom:20px;">{{$data->Gender}}</div>
+					<div class="col-sm-8" style="padding-top:20px;">{{$data->Gender}}</div>
 				</div>
 				
 				<div class="row">
@@ -134,6 +134,7 @@
 				</div>
 				<div style="margin-top:20px;padding:20px;">
 					<div class="row">
+                        
 					@foreach($data->partHist as $benH)
 						<div class="col-sm-3">
 							<div style="overflow:hidden;height:200px;border:solid silver 1px;padding:20px;text-align:center;">

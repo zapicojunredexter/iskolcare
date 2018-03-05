@@ -28,11 +28,9 @@
         <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
     <![endif]-->
         
+    </head>
+<body id="page-top" style="background-image:url('default-img/header.jpg')">
 
-<body id="page-top">
-
-<meta charset="utf-8">
-<body onload='loadmodal()'>
     <nav id="mainNav" class="navbar navbar-default navbar-fixed-top" >
         <div class="container-fluid">
             <!-- Brand and toggle get grouped for better mobile display -->
@@ -68,76 +66,89 @@
         <!-- /.container-fluid -->
     </nav>
 
-    <div class="row" style="margin-top:100px;">
-	
-        <div class="col-sm-3">
-        
-        </div>
-        <div class="col-sm-6">
-            <h3>Registration Form</h3>
-            
-            <form method="POST" id="registrationForm" onsubmit="validateForm();return false;">{{csrf_field()}}
-                
-                
-            <div class="row">
-                <div class="col-sm-12" style="margin-top:30px;">
-                    <input type="email" name="emailAddress" placeholder="Email Address*" class="form-control" required>
-                </div>
-                <div class="col-sm-12" style="margin-top:30px;">
-                    <input type="text" name="contactNumber" placeholder="Contact Number*" class="form-control" required>
-                </div>
-                <div class="col-sm-12" style="margin-top:30px;">
-                    <input type="text" name="address" placeholder="Address*" class="form-control" required>
-                </div>
-                <div class="col-sm-12" style="margin-top:30px;">
-                    <input type="text" name="username" placeholder="Username" class="form-control" required>
-                </div>
-                <div class="col-sm-6" style="margin-top:30px;">
-                    <input type="password" id="password" name="password" placeholder="Password*" class="form-control" required>
-                </div>
-                <div class="col-sm-6" style="margin-top:30px;">
-                    <input type="password" id="confirm_password" name="password1" placeholder="Re-type Password" class="form-control" required>
-                </div>
+    <div class="container">
+        <div class="row" style="margin-top:100px;">
 
-                
+            <div class="col-sm-3">
+
             </div>
-            
-            <input type="button" onclick="validateForm()" value="Submit">
-            </form>
-            <script>
-                function validateForm(){
-                    var password=document.getElementById("password"),confirm_password=document.getElementById("confirm_password");
-                    if(password.value != confirm_password.value){
-                        alert("Passwords must match");
-                        //confirm_password.setCustomValidity("Passwords do not match!");
-                    }else{
-                            $.ajax({
-                                url: "{{ url('/becomeSubscriber') }}",
-                                type: "post", 
-		                        data: $("#registrationForm").serialize(),
-                                success: function(response) {
-                                    if(response === "Successfully Created new Account"){
-                                        window.location.href="{{url('getProfile')}}";
-                                    }else{
-                                        alert(response);
+            <div class="col-sm-6" style="background-color:white;border-radius:5px;">
+                <div style="background-color:white;opacity:1!important;"> 
+                <h3>Registration Form</h3>
+
+                <form method="POST" id="registrationForm" onsubmit="validateForm();return false;">{{csrf_field()}}
+
+
+                <div class="row">
+                    <div class="col-sm-12" style="margin-top:30px;">
+                        <input type="email" name="emailAddress" placeholder="Email Address*" class="form-control" required>
+                    </div>
+                    <div class="col-sm-12" style="margin-top:30px;">
+                        <input type="text" name="contactNumber" placeholder="Contact Number*" class="form-control" required>
+                    </div>
+                    <div class="col-sm-12" style="margin-top:30px;">
+                        <input type="text" name="address" placeholder="Address*" class="form-control" required>
+                    </div>
+                    <div class="col-sm-12" style="margin-top:30px;">
+                        <input type="text" name="username" placeholder="Username" class="form-control" required>
+                    </div>
+                    <div class="col-sm-6" style="margin-top:30px;">
+                        <input type="password" id="password" name="password" placeholder="Password*" class="form-control" required>
+                    </div>
+                    <div class="col-sm-6" style="margin-top:30px;">
+                        <input type="password" id="confirm_password" name="password1" placeholder="Re-type Password" class="form-control" required>
+                    </div>
+
+
+                </div>
+<br>
+                <input type="button" onclick="validateForm()" style="font-weight:bold;
+    padding-left:30px;
+    margin-right:10px;
+    padding-right:30px;
+    background-color:#2196F3;
+    padding-top:15px;
+    padding-bottom:15px;
+    font-size:18px;
+    border:solid black 0px; 
+    color:white;width:100%;" value="Submit">
+                    <br><br>
+                </form>
+                    </div>
+                <script>
+                    function validateForm(){
+                        var password=document.getElementById("password"),confirm_password=document.getElementById("confirm_password");
+                        if(password.value != confirm_password.value){
+                            alert("Passwords must match");
+                            //confirm_password.setCustomValidity("Passwords do not match!");
+                        }else{
+                                $.ajax({
+                                    url: "{{ url('/becomeSubscriber') }}",
+                                    type: "post", 
+                                    data: $("#registrationForm").serialize(),
+                                    success: function(response) {
+                                        if(response === "Successfully Created new Account"){
+                                            window.location.href="{{url('getProfile')}}";
+                                        }else{
+                                            alert(response);
+                                        }
+                                    },
+                                    error: function(xhr) {
+                                        console.log('error'+xhr);
+                                        alert('Something went wrong!');
                                     }
-                                },
-                                error: function(xhr) {
-                                    console.log('error'+xhr);
-                                    alert('Something went wrong!');
-                                }
-                            });                            
-                        
+                                });                            
+
+                        }
+                     //   alert('in here');
                     }
-                 //   alert('in here');
-                }
-            </script>
-        </div>
-        <div class="col-sm-3">
-    
+                </script>
+            </div>
+            <div class="col-sm-3">
+
+            </div>
         </div>
     </div>
-
 
 
 	@include('includes.scripts')

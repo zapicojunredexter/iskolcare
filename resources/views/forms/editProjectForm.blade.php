@@ -3,6 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 EDIT PROJECT
+                <span onclick="$('#editProjectModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
 

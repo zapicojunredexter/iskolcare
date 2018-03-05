@@ -21,6 +21,83 @@
     -->
     <link href="css/my-light.css" rel="stylesheet" />
 <style>
+/* start sa scroll bar*/
+    
+/* width */
+::-webkit-scrollbar {
+    width: 3px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+}
+ 
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888; 
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+}
+/* end sa scrollbar */
+/* wwwww */
+    
+body, html {
+    /*
+    height: 100%;
+    background-repeat: no-repeat;
+    background-image: linear-gradient(rgb(104, 145, 162), rgb(12, 97, 33));*/
+}
+/**
+ * Profile image component
+ */
+.profile-header-container{
+    margin: 0 auto;
+    text-align: center;
+}
+
+.profile-header-img {
+    padding: 0;
+}
+
+.profile-header-img > img.img-circle {
+
+    border: 3px solid #1b593e;
+}
+
+.profile-header {
+    margin-top: 43px;
+}
+
+/**
+ * Ranking component
+ */
+.rank-label-container {
+    margin-top: -19px;
+    /* z-index: 1000; */
+    text-align: center;
+}
+
+.label.label-default.rank-label {
+    font-size: 10px;    
+    background-color: rgb(81, 210, 183);
+    background-color: #1b593e;
+    padding: 3px 3px;
+    border-radius: 27px;
+}    
+    .ppimg{
+        border-radius: 50%;
+        height: 50px;
+    }
+    
+    
+/* qqqqqqqqqqq */       
+    
+    
+    
 /*
 .breadcrumb-right-arrow .breadcrumb-item+.breadcrumb-item::before{
     content: ">";
@@ -177,4 +254,7 @@ a{
     .pac-container {
     z-index: 1051 !important;
 }
+   
 </style>
+
+    <link rel="icon" href="default-img/mini-logo.png">

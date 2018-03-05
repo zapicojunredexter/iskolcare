@@ -13,9 +13,11 @@ $('--').data('image');
         Tip 2: you can also add an image using data-image tag
     -->
             <div class="sidebar-wrapper" style="background-color:#1b593e;">
-                <div class="logo" style="align-items:center;justify-content:center;">
-                    
+                <div class="logo" style="align-items:center;justify-content:center;text-align:center;">
+                    <!--
 					<img src="default-img/logo.png" style="margin-left:25%;width:50%;">
+                    -->
+					<img src="default-img/logo.png" style="margin-left:autopx;width:75%;">
                 </div>
                 <div class="list-group panel">
                     <a
@@ -31,7 +33,7 @@ $('--').data('image');
                     <a
                         style="
                         {{Request::is('getUniversityProfile') && $university->UniId === Session::get('uniId')?'background-color:#103525!important;':''}}
-                        {{Request::is('getUniversityProgramsSpecific') && $program->ProgramId !== Session::get('programId')?'background-color:#103525!important;':''}}
+                        {{Request::is('getUniversityProgramsSpecific') && (!empty($program)) && $program->ProgramId !== Session::get('programId')?'background-color:#103525!important;':''}}
                         {{Request::is('getUniversityProject') && $university->UniId === Session::get('uniId')?'background-color:#103525!important;':''}}
                         {{Request::is('getActivityPage') && $activity->MadeBy->UniId === Session::get('uniId')?'background-color:#103525!important;':''}}
                         {{Request::is('manageAttendance')?'background-color:#103525!important;':''}}
@@ -40,7 +42,7 @@ $('--').data('image');
                         href="{{url('getUniversityProfile')}}?id={{Session::get('uniId')}}"
                         class="list-group-item collapse">
                         <i data-target="#menu1" class="nc-icon nc-bank" data-toggle="collapse" aria-expanded="false"></i>        
-                        <p style="">MY UNIVERSITY</p>
+                        <p style="">MY SCHOOL</p>
                     </a>
                     <div class="collapse" id="menu1">
                         <a href="{{url('getUniversityProfile')}}?id={{Session::get('uniId')}}" class="list-group-item collapse">
@@ -87,7 +89,7 @@ $('--').data('image');
                         "
                         href="{{url('viewPendingProposals')}}" class="list-group-item">
                         <i class="nc-icon nc-single-copy-04"></i>    
-                        <p style="">PROJECT PROPOSALS</p>
+                        <p style="">PROJECTS / ACTIVITIES</p>
                     </a>
 
                     <a
@@ -107,13 +109,13 @@ $('--').data('image');
                     
                         style="
                         {{Request::is('getUniversityProfile') && $university->UniId !== Session::get('uniId')?'background-color:#103525!important;':''}}
-                        {{Request::is('getUniversityProgramsSpecific') && $program->UniversityId !== Session::get('uniId')?'background-color:#103525!important;':''}}
+                        {{Request::is('getUniversityProgramsSpecific') && (!empty($program)) && $program->UniversityId !== Session::get('uniId')?'background-color:#103525!important;':''}}
                         {{Request::is('getUniversityProject') && $university->UniId !== Session::get('uniId')?'background-color:#103525!important;':''}}
                         {{Request::is('getActivityPage') && $activity->MadeBy->UniId !== Session::get('uniId')?'background-color:#103525!important;':''}}
                         "
                         class="list-group-item" onclick="getUniversityLists()">
                         <i class="nc-icon nc-istanbul"></i>
-                        <p>UNIVERSITIES</p>
+                        <p>OTHER SCHOOLS</p>
                     </a>
                     
                     <div style="background-color:#185038;display:none;" id="universities-dropdown">

@@ -3,6 +3,7 @@
 
 <head>
     @include('includes.libs')
+    <title>Create Certificates</title>
 </head>
 
 <body>
@@ -30,9 +31,15 @@
                       <!--start sa create certificate contents-->
                       <div id="data" class="col-sm-12">   
                           <div class="row">
-                            <div class="col-sm-10">
-                                <input class="form-control"type="text" onkeyup="changeFontSize()" placeholder="Size of name" id="size">
-                            </div>
+                              <div class="col-sm-12">
+                                  <a href="{{url('getActivityPage')}}?id={{$activity->ActivityId}}#tab-participants">
+                                  <h3 style="display:inline;">{{$activity->ActivityName}}</h3>
+                                  </a>
+                                  <br><br>
+                              </div>
+                                <div class="col-sm-10">
+                                    <input class="form-control"type="text" onkeyup="changeFontSize()" placeholder="Size of name" id="size">
+                                </div>
                               <div class="col-sm-2">
                                   <button onclick="printCertificates()" class="blue-button">GET PDF</button>
                                 
@@ -47,7 +54,7 @@
                       <script>
                           function printCertificates(){
                           var size = document.getElementById('size').value;
-                            var w=window.open("printCertificates?actId={{$activityId}}&size="+size);
+                            var w=window.open("printCertificates?actId={{$activityId}}&size="+size+"&for={{$for}}");
                             w.onload=function(){w.print();w.close()};   
                           }
                           function changeFontSize(){  

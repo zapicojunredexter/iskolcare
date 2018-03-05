@@ -16,6 +16,9 @@
             @include('includes.regUserSidebar')
         @endif
         <div class="main-panel">
+            <?php
+                $label = "Upcoming Activities";
+            ?>
             @include('includes.regUserHeader')
             <div class="content">
                 <div class="container-fluid">

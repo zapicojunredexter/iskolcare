@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Input;
 use Illuminate\Pagination\LengthAwarePaginator;
+
 use DB;
 class HomeController extends Controller
 {
@@ -124,6 +125,8 @@ class HomeController extends Controller
         $test = DB::select("select * from posts where UniId='$id' order by PostDate desc");
         //$uniDetails[0]->Posts = $this->arrayPaginator($test,$request);
         $uniDetails[0]->Posts = ($test);
+            
+            
         //print_r($test);
         //print_r($uniDetails[0]->Posts);
         
@@ -139,12 +142,13 @@ class HomeController extends Controller
 
     function arrayPaginator($array,$request){
         $page = Input::get('page',1);
-        $perPage =10;
+        $perPage =1;
         $offset = ($page & $perPage) - $perPage;
 
         return new LengthAwarePaginator(array_slice($array,$offset,$perPage,true),count($array),$perPage,$page,
             ['path'=>$request->url(),'query'=>$request->query()]);
     }
+        
     
     function getUniversityAnnouncements(Request $request){
         $id=$request->input('id');
@@ -239,7 +243,9 @@ class HomeController extends Controller
                     return View('getUniversityProgramsSpecific',['university'=>$university[0],'program'=>$program,'type'=>$type,'uniId'=>$uniId,'coordinators'=>$coordinators]);
                 }*/
             }else{
-                echo 'program record does not exists';
+                $message = 'Program Record does not Exists';
+                
+                return View('notFound',["message"=>$message]);
             }
             
         
@@ -297,7 +303,7 @@ class HomeController extends Controller
                 $uniDetails  = DB::select("select * from universities u,programs p where p.UniversityId = u.UniId and p.ProgramId = ?",[$project->ProgramId]);
                 $uniDetails = $uniDetails[0];
             }
-            $project->Activities = DB::select("select ActivityName,ActivityId from activities where ProjectId = ? and ActivityStatus = ?",[$project->ProjectId,"Approved"]);
+            $project->Activities = DB::select("select ActivityName,ActivityId from activities where ProjectId = ? and ActivityStatus = ? order by ActivityId desc",[$project->ProjectId,"Approved"]);
             /*$i=0;
             foreach($project->Activities as $activity){
                 $volCount = DB::select("select count(VolunteerId) as Co from volunteers where VolunteerStatus = 1 and ProgramId = ?",[$activity->ActivityId]);
@@ -335,6 +341,7 @@ class HomeController extends Controller
             $finalDatesArray = array();
             foreach($datesArray as $date){
                 $volCount = DB::select("select count(v.VolunteerId) as VolCount from activities a,volunteers v where v.ProgramId = a.ActivityId and a.ProjectId = ? and v.VolunteerStatus = ? and Month(v.ApprovedDate) = ? and Year(v.ApprovedDate) = ?",[$id,1,substr($date,5,2),substr($date,0,4)]);
+               // $volCount = DB::select("select count(v.VolunteerId) as VolCount from activities a,volunteers v,volunteerattendances va where v.ProgramId = a.ActivityId and va.VolunteerId = v.VolunteerId and a.ProjectId = ? and v.VolunteerStatus = ? and Month(v.ApprovedDate) = ? and Year(v.ApprovedDate) = ?",[$id,1,substr($date,5,2),substr($date,0,4)]);
                 $benCount = DB::select("select count(b.BeneficiaryId) as BenCount from activities a,beneficiaries b where b.ProgramId = a.ActivityId and a.ProjectId = ? and b.BenStatus = ? and Month(b.ApprovedDate) = ? and Year(b.ApprovedDate) = ?",[$id,1,substr($date,5,2),substr($date,0,4)]);
 
                 $dateOb = new \stdClass();
@@ -435,9 +442,7 @@ class HomeController extends Controller
                 $activity->MadeBy = DB::select("select * from universities u,programs p where p.UniversityId = u.UniId and p.ProgramId = ?",[$activity->ProgramId]);
             }
         }*/
-
-//        $upcomingActivities = DB::select("select ac.ActivityName,ac.ActivityId,pr.ProjectId,pr.ProjectId,pr.Banner,pr.ProjectName,sc.SchedDate from activities ac,projects pr,schedules sc where pr.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId order by sc.SchedDate desc");a
-        $upcomingActivities = DB::select("select ac.ActivityName,ac.ActivityId,pr.ProjectId,pr.ProjectId,pr.Banner,pr.ProjectName,sc.SchedDate from activities ac,projects pr,schedules sc where sc.SchedDate>= ? and pr.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and ac.ActivityStatus = 'Approved' and pr.Status = 'Approved' and (((pr.Level = 'Institution' and pr.ProgramId = ?) or (pr.Level = 'Program' and pr.ProgramId in (select pr1.ProgramId from programs pr1 where pr1.UniversityId = ?))) or ((pr.Level = 'Institution' and pr.ProgramId <> ?) or (pr.Level = 'Program' and pr.ProgramId in (select pr2.ProgramId from programs pr2 where pr2.UniversityId <> ?)))) order by sc.SchedDate desc",[date("Y-m-d"),session('uniId'),session('uniId'),session('uniId'),session('uniId')]);
+        $upcomingActivities = DB::select("select ac.ActivityName,ac.ActivityId,pr.ProjectId,pr.ProjectId,pr.Banner,pr.ProjectName,sc.SchedDate from activities ac,projects pr,schedules sc where sc.SchedDate>= ? and pr.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and ac.ActivityStatus = 'Approved' and pr.Status = 'Approved' and (((pr.Level = 'Institution' and pr.ProgramId = ?) or (pr.Level = 'Program' and pr.ProgramId in (select pr1.ProgramId from programs pr1 where pr1.UniversityId = ?))) or ((pr.Level = 'Institution' and pr.ProgramId <> ?) or (pr.Level = 'Program' and pr.ProgramId in (select pr2.ProgramId from programs pr2 where pr2.UniversityId <> ?)) and ac.isExclusive = 0)) order by sc.SchedDate desc",[date("Y-m-d"),session('uniId'),session('uniId'),session('uniId'),session('uniId')]);
         return View('getUpcomingActivities',['upcomingActivities'=>$upcomingActivities]);
         /*$uniId = session('uniId');
         $upcomingActivities = DB::select("select * from programs p, activities a, projects j, universities u where u.uniId=p.UniversityId and p.ProgramId=j.ProgramId and j.ProjectId=a.ProjectId and a.ActivityStatus='Approved' and j.Status='Approved' and u.UniId = ?",[$uniId]);

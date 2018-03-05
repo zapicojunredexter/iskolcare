@@ -3,6 +3,7 @@
 
 <head>
     @include('includes.libs')
+    <title>Projects and Activities</title>
 </head>
 
 <body>
@@ -16,6 +17,10 @@
             @include('includes.regUserSidebar')
         @endif
         <div class="main-panel">
+            
+            <?php
+                $label="Projects / Activities";
+            ?>
             @include('includes.regUserHeader')
             <div class="content">
                 <div class="container-fluid">
@@ -24,7 +29,7 @@
                         <div class="col-sm-12">
                             <script>
                                 function changeTab(option){
-                                    var list = ['all-activities','projects','activities'];
+                                    var list = ['all-activities','all-projects','projects','activities'];
                                     for(var i = 0; i<list.length;i++){
                                         if(option === list[i]){
                                             $('#'+list[i]+'-tab').attr('class','nav-item nav-link active');
@@ -40,9 +45,11 @@
                                 }
                             </script>
                             <div class="nav nav-tabs justify-content-start" role="tablist">
-                                <a class="nav-item nav-link active" onclick="changeTab('all-activities')" id="all-activities-tab" href="#all-activities-tab"style="width:33%;color:black;padding:20px;text-align:center;">ALL</a>
-                                <a class="nav-item nav-link" onclick="changeTab('projects')" id="projects-tab" href="#projects-tab" style="width:33%;color:black;padding:20px;text-align:center;">{{sizeof($myPendingProjects)}} PROJECTS</a>
-                                <a class="nav-item nav-link" onclick="changeTab('activities')" id="activities-tab" href="#activities-tab" style="width:33%;color:black;padding:20px;text-align:center;">{{sizeof($myPendingActivities)}} ACTIVITIES</a>
+                                <a class="nav-item nav-link active" onclick="changeTab('all-activities')" id="all-activities-tab" href="#all-activities-tab"style="width:25%;color:black;padding:20px;text-align:center;font-weight:bold;">ALL ACTIVITIES</a>
+                                <a class="nav-item nav-link" onclick="changeTab('all-projects')" id="all-projects-tab" href="#all-projects-tab" style="width:25%;color:black;padding:20px;text-align:center;font-weight:bold;">ALL PROJECTS</a>
+                                <a class="nav-item nav-link" onclick="changeTab('projects')" id="projects-tab" href="#projects-tab" style="width:25%;color:black;padding:20px;text-align:center;font-weight:bold;">{{sizeof($myPendingProjects)}} PROJECTS</a>
+                                
+                                <a class="nav-item nav-link" onclick="changeTab('activities')" id="activities-tab" href="#activities-tab" style="width:25%;color:black;padding:20px;text-align:center;font-weight:bold;">{{sizeof($myPendingActivities)}} ACTIVITIES</a>
                                 
                             </div>
                             <div class="tab-content" style="background-color:white;padding:20px;">
@@ -59,11 +66,11 @@
                                             </td>
                                         </tr>
                                     
-                                        @foreach($allProjects as $upComingAct)
+                                        @foreach($allActivities as $upComingAct)
                                         <tr>
                                             <td>
                                                 <div class="row">
-                                                    <div class="col-sm-10" style="color:{{$upComingAct->SchedDate<date('Y-m-d')?'silver':'black'}};">
+                                                    <div class="col-sm-10" style="color:{{$upComingAct->MaxSchedDate<date('Y-m-d')?'silver':'black'}};">
                                                         <div class="row">
                                                             <div class="col-sm-2">
                                                                 <img style="width:100px;height:100px;" src="img/logos/programs/{{$upComingAct->Banner}}" alt="">
@@ -73,7 +80,12 @@
                                                             
                                                                 of the <a href="{{url('getUniversityProject')}}?id={{$upComingAct->ProjectId}}">{{$upComingAct->ProjectName}}</a> Project
                                                                 <br>
-                                                                {{date("M jS, Y",strtotime($upComingAct->SchedDate))}}
+                                                                @if($upComingAct->MinSchedDate === $upComingAct->MaxSchedDate)
+                                                                    {{date("M jS, Y",strtotime($upComingAct->MinSchedDate))}}                            
+                                                                @else
+                                                                    {{date("M jS, Y",strtotime($upComingAct->MinSchedDate))}} to {{date("M jS, Y",strtotime($upComingAct->MaxSchedDate))}}
+                                                                @endif
+                                                                
                                                             </div>
                                                         </div>
                                                     </div>
@@ -86,6 +98,45 @@
                                         
                                 </div>
                                 <!-- end of all -->
+                                <!-- start of all projects -->
+                                <div class="tab-pane fade show" id="tab-all-projects">
+                                    <table class="table-striped" style="border:solid silver 1px;width:100%">
+                                        <tr style="background-color:#1b593e;color:white;">
+                                            <td>
+                                                <div class="row">
+                                                    <div class="col-sm-10" style="font-weight:bold;">MY PROJECTS</div>
+                                                    
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @foreach($allProjects as $project)
+                                        <tr>
+                                            <td>
+                                                <div class="row">
+                                                    <div class="col-sm-10">
+                                                        <div class="row">
+                                                            <div class="col-sm-2">
+                                                                <img style="width:100px;height:100px;" src="img/logos/programs/{{$project->Banner}}" alt="">
+                                                            </div>
+                                                            <div class="col-sm-10">
+                                                                <h4 style="display:inline;"><a href="{{url('getUniversityProject')}}?id={{$project->ProjectId}}">{{$project->ProjectName}}</a></h4><br>
+                                                                @if($project->Level === "Program")
+                                                                of the <a href="{{url('getUniversityProgramsSpecific')}}?id={{$project->ProgramId}}">
+                                                                {{$project->ProgramName}}
+                                                                </a>
+                                                                @endif
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                        
+                                    @endforeach
+                                    </table>
+                                        
+                                </div>
+                                <!-- end of all projects -->
                                 
                                 <!-- start of pending projects -->
                                 <div class="tab-pane fade show" id="tab-projects">
@@ -142,8 +193,11 @@
                                                 type: "get", 
                                                 data: $("#projects-form").serialize(),
                                                 success: function(response) {
-                                                    alert("successfully approved projects");
-                                                    location.reload();
+                                                    swal("Successfully Approved Projects","","success").then(()=>{
+                                                        location.reload(true);
+                                                    });
+
+                                                   
                                                 },
                                                 error: function(xhr) {
                                                     alert("Something went wrong!");
@@ -157,8 +211,10 @@
                                                 type: "get", 
                                                 data: $("#projects-form").serialize(),
                                                 success: function(response) {
-                                                alert("successfully deleted projects");
-                                                location.reload();
+                                                    swal("Successfully Deleted Projects","","success").then(()=>{
+                                                        location.reload(true);
+                                                    });
+
                                                 },
                                                 error: function(xhr) {
                                                     alert("Data: error");
@@ -230,8 +286,9 @@
                                                 type: "get", 
                                                 data: $("#activities-form").serialize(),
                                                 success: function(response) {
-                                                    alert("successfully approved activity");
-                                                    location.reload();
+                                                    swal("Successfully Approved Activities","","success").then(()=>{location.reload(true);});
+                                                    
+
                                                 },
                                                 error: function(xhr) {
                                                     alert("Something went wrong!");
@@ -245,8 +302,7 @@
                                                 type: "get", 
                                                 data: $("#activities-form").serialize(),
                                                 success: function(response) {
-                                                alert("successfully deleted activities");
-                                                location.reload();
+                                                    swal("Successfully Deleted Activities","","success").then(()=>{location.reload(true);});
                                                 },
                                                 error: function(xhr) {
                                                     alert("Data: error");

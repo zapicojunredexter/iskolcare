@@ -8,6 +8,7 @@
 
 <body>  
     <div class="wrapper" style="background-color:#e6eaeb;">
+        @include('forms.editEvaluationToolForm')
         @include('forms.addQuestionForm')
         @include('forms.editQuestionForm')
         @if(Session::get('type')==='Director')
@@ -42,24 +43,37 @@
                                     <h2 style="font-weight:bold;">{{strtoupper($evaluationTool->EvaluationFormName)}}</h2>
                                     <h3>{{$evaluationTool->EvaluationFormDescription}}</h3>
                                 </div>
-                                <div class="col-sm-3" style="padding:10px;margin-left:auto;">
+                                <div class="col-sm-3" style="padding:10px;margin-left:auto;text-align:center;">
                                     @if($checkIfReleased->Count === 0)
-                                    <button style="float:right;background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;" onclick="$('#addQuestionModal').modal('show');">
+                                    <button style="background-color:#2196F3;padding:10px;cursor:pointer;border:solid black 0px;color:white;" onclick="$('#addQuestionModal').modal('show');">
                                         + Add Question
                                     </button>
                                     @else
-                                    <button style="float:right;background-color:#2196F3;padding:10px;border:solid black 0px;color:white;">
-                                        This has been released to {{$checkIfReleased->Count}} Activities
+                                    <button style="background-color:#2196F3;padding:10px;border:solid black 0px;color:white;">
+                                        This has been released to {{$checkIfReleased->Count}} {{($checkIfReleased->Count===1)?"Activity":"Activities"}}
                                     </button>
                                     
+                                    @endif
+                                    <br><br>
+                                    <a data-toggle="modal" data-target="#editEvaluationToolModal"><img style="width:25px;height:25px;" src="default-img/edit.png" title="Edit Evaluation Tool Details"></a>
+                                    @if($checkIfReleased->Count === 0)
+                                    <a onclick="deleteEvaluationForm({{$evaluationTool->EvaluationFormId}})"><img src="default-img/trash.png" style="width:25px;"></a>
                                     @endif
                                 </div>
                             </div>
                             
                         </div>
+
+                        <script>
+                            function deleteEvaluationForm(id){
+                                if(confirm('Are you sure you want to delete Evaluation Form?')){
+                                    window.location.href="{{url('deleteEvaluationTool')}}"+"?id="+id;
+                                }
+                            }
+                        </script>
                         <!-- start sa evaluation question-->
                         <?php
-                        $counter=1;
+                            $counter=1;
                         ?>
                         @foreach($evaluationTool->Questions as $question)
                         <div class="col-sm-12" style="margin-top:20px;padding-left:20px;padding-right:20px;">
@@ -76,7 +90,7 @@
                             @if($checkIfReleased->Count === 0)
                                     
                                 <a href="#" onclick="editQuestion({{$question->QuestionId}})">
-                                    <img src="default-img/edit.png" alt="edit" style="width:30px;height:30px;">
+                                    <img src="default-img/edit.png" alt="edit" style="width:30px;height:30px;" title="Edit Question">
                                 </a>
                                 <a href="#" onclick="if(confirm('Are you sure you want to delete this question?')){window.location.href='{{url('deleteQuestion')}}?id={{$question->QuestionId}}'}">
                                     <img src="default-img/trash.png" alt="delete" style="width:30px;height:30px;">

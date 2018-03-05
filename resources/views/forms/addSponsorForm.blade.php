@@ -3,6 +3,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 MANAGE ACTIVITY SPONSORS
+                
+                <span onclick="$('#addSponsorModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body">
             <form method="get" action="{{url('/addSponsor')}}">
@@ -58,6 +60,7 @@
                         <input type="text" name="sponsorContactNumber" class="form-control">
                         
                     </div>
+                    <br>
                     <button type="submit" class="blue-button" style="margin-left:40%;" onclick="this.disabled='true';this.form.submit();">SAVE</button>
                 </div>
             </div>

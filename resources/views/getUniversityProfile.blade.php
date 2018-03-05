@@ -267,24 +267,20 @@
                                             <div class="row">
                                                 <div class="col-sm-8">
                                                     <small style="color: black; padding: 0; font-weight: bold;">{{$post->PostedBy}}</small><br>
-                                                    <small style="padding: 0; color: black;">{{$post->PostDate}}</small>
+                                                    <small style="padding: 0; color: black;">{{date('M jS, Y h:i:s a',strtotime($post->PostDate))}}</small>
                                                 </div>
                                                 <div class="col-sm-4" style="text-align:right;">
                                                 @if(((Session::get('type')==='Director')&&(Session::get('uniId')===$university->UniId)) || (Session::get('type')==='Coordinator' && Session::get('uniId')===$university->UniId && (Session::get('type').' - '.Session::get('accountId') === $post->PosterDetails)))
                                                     <img data-toggle="tooltip" title="Delete Announcement" src="default-img/trash.png" onclick="deleteAnnouncement({{$post->PostId}})" style="cursor:pointer;width:20px;">
                                                     <img data-toggle="tooltip" title="Edit Announcement" src="default-img/edit.png"
-                                                        onclick="replaceEditAnnouncement({{$post->PostId}},'{{$post->PostedBy}}','{{removeNewLine($post->PostDescr)}}','{{$post->PostDate}}','{{$post->PostWhat}}','{{$post->PostWhen}}','{{$post->PostWhere}}');" style="cursor: pointer;width:20px;" >
+                                                        onclick="replaceEditAnnouncement({{$post->PostId}},`{{$post->PostedBy}}`,`{{removeNewLine($post->PostDescr)}}`,`{{$post->PostDate}}`,`{{$post->PostWhat}}`,`{{$post->PostWhen}}`,`{{$post->PostWhere}}`);" style="cursor: pointer;width:20px;" >
                                                 @endif
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div style="width: 100%; background: white; float: right; padding: 2%; background: #f1f1f1;">
-                                        <p style="text-indent: 5%;">
-                                            <?php
-                                                echo removeNewLine($post->PostDescr);
-                                            ?>
-                                        </p>
+                                        
                                         <div class="row">
                                             @if($post->PostWhat)
                                             <div class="col-sm-3" style="font-weight:bold;">What:</div>
@@ -300,6 +296,12 @@
                                             @endif
                                         
                                         </div>
+                                        <br>
+                                        <p style="text-indent: 5%;">
+                                            <?php
+                                                echo removeNewLine($post->PostDescr);
+                                            ?>
+                                        </p>
                                     </div>
                                 </div>
 

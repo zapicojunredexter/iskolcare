@@ -3,7 +3,7 @@
 
 <head>
     @include('includes.libs')
-    <title>{{$account->Name}}'s Profile</title>
+    <title>View Profile</title>
 </head>
 
 <body>
@@ -19,6 +19,9 @@
             @include('includes.superAdminSideBar')
         @endif
         <div class="main-panel">
+            <?php
+                $label="View Account Details";
+            ?>
             @if(Session::get('type')!=='Super Admin')
                 @include('includes.regUserHeader')
             @else
@@ -76,12 +79,16 @@
                                     <div class="col-sm-8" style="padding-top:20px;">{{$account->LastName}}</div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>Address</b></div>
-                                    <div class="col-sm-8" style="padding-top:20px;">{{$account->Address}}</div>
+                                    <div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>Contact Number</b></div>
+                                    <div class="col-sm-8" style="padding-top:20px;">{{$account->ContactNumber}}</div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>EmailAddress</b></div>
                                     <div class="col-sm-8" style="padding-top:20px;">{{$account->EmailAddress}}</div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>Address</b></div>
+                                    <div class="col-sm-8" style="padding-top:20px;">{{$account->Address}}</div>
                                 </div>
                                 <div class="row">
                                     <div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>Birthdate</b></div>
@@ -100,7 +107,7 @@
                                     <div class="col-sm-8" style="padding-top:20px;">{{$account->ContPerson}}</div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>Contact Person Contact Number</b></div>
+                                    <div class="col-sm-4" style="padding-left:80px;padding-top:20px;"><b>Contact Number</b></div>
                                     <div class="col-sm-8" style="padding-top:20px;">{{$account->ContPersonContNumber}}</div>
                                 </div>
                                 <div class="row">
@@ -110,48 +117,113 @@
                             
                             </div>
                             <!--start sa volunteer history details-->
+                            @if(!empty($account->CoordinatorHistory))
                             <div style="background-color:white;border-radius:5px;">
                             
                                 <div style="background-color:#1b593e;color:white;margin-top:30px;">
-                                    <h4 style="font-weight:bold;padding:10px;">VOLUNTEERING HISTORY</h4>
+                                    <h4 style="font-weight:bold;padding:10px;">COORDINATOR HISTORY</h4>
                                 </div>
                                 <div style="margin-top:20px;padding:20px;">
                                     <div class="row">
-                                    @foreach($account->volHist as $volH)
+                                    @foreach($account->CoordinatorHistory as $coor)
                                         <div class="col-sm-3">
-                                            <div style="overflow:hidden;height:200px;border:solid silver 1px;padding:20px;text-align:center;">
-                                                <img src="img/logos/programs/{{$volH->Banner}}" style="width:40px;height:40px;border-radius:50%" alt="">
+                                            
+                                            <div style="overflow:auto;height:250px;border:solid silver 1px;padding:20px;text-align:center;">
+                                                <img src="img/logos/programs/{{$coor->Logo}}" style="width:40px;height:40px;border-radius:50%" alt="">
+                                                <br><br>
+                                                <small>{{$coor->isActive === 1?"Current":"Former"}} Coordinator of</small> 
+                                                <br><br>
+                                                <a href="{{url('getUniversityProgramsSpecific')}}?id={{$coor->ProgramId}}">{{$coor->ProgramName}} Program</a>
+                                                
                                                 <br>
-                                                <a href="{{url('getActivityPage')}}?id={{$volH->ActivityId}}">{{$volH->ActivityName}}</a>
-                                                <br>
-                                                <small style="overflow:hidden;text-overflow:ellipsis;">of the <a href="{{url('getUniversityProject')}}?id={{$volH->ProjectId}}">{{$volH->ProjectName}} Project</a></small>
                                             </div>
                                         </div>
                                     @endforeach
                                     </div>
                                 </div>
                             </div>
-                                <!--end sa volunteer history details-->
+                            @endif
+                            <!--end sa volunteer history details-->
+                            <!--start sa volunteer history details-->
+                            <div style="background-color:white;border-radius:5px;">
+                            
+                                <div style="background-color:#1b593e;color:white;margin-top:30px;">
+                                    <h4 style="font-weight:bold;padding:10px;">ACTIVITIES AS VOLUNTEER</h4>
+                                </div>
+                                <div>
+                                    <div class="row" style="margin:20px;">
+                                        
+                                    @foreach($account->volHist as $volH)
+                                        <div class="col-sm-3" style="border:solid silver 1px;text-align:center;padding:10px;">
+                                            <!--start sa graph-->
+                                            <div class="clearfix" title="Attended {{$volH->AttendanceCount}} out of  {{$volH->SchedCount}} Schedules" style="padding-left:63px;width: 100%;">
+                                                <div class="c100 p{{round(($volH->AttendanceCount/$volH->SchedCount)*100)}} small">
+                                                <!-- p50 = 50% progress -->
+                                                <span>
+                                                    <img src="img/logos/programs/{{$volH->Banner}}" style="width:55px;height:55px;border-radius:50%" alt="">
+                                                </span>
+                                                <div class="slice">
+                                                    <div class="bar"></div>
+                                                    <div class="fill"></div>
+                                                </div>
+                                                <span>
+                                                    <div class="circle-text" style="font-size:15px;">
+
+
+                                                    </div>
+
+                                                    </span>
+                                                </div>
+                                            </div>
+                                            <a href="{{url('getActivityPage')}}?id={{$volH->ActivityId}}">{{$volH->ActivityName}}</a>
+                                            <br>
+                                            <small style="overflow:hidden;text-overflow:ellipsis;">of the <a href="{{url('getUniversityProject')}}?id={{$volH->ProjectId}}">{{$volH->ProjectName}} Project</a></small>
+
+                                                <!--end sa graph-->
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+                            <!--end sa volunteer history details-->
                                 
                             <!--start sa beneficiary history details-->
                             <div style="background-color:white;border-radius:5px;">
                                 
                                 <div style="background-color:#1b593e;color:white;margin-top:30px;">
-                                    <h4 style="font-weight:bold;padding:10px;">BENEFICIARY HISTORY</h4>
+                                    <h4 style="font-weight:bold;padding:10px;">ACTIVITIES AS BENEFICIARY</h4>
                                 </div>
-                                <div style="margin-top:20px;padding:20px;">
-                                    <div class="row">
+                                <div style="padding-bottom:10px;">
+                                    <div class="row" style="margin:20px;">
                                     @foreach($account->partHist as $benH)
-                                        <div class="col-sm-3">
-                                            <div style="overflow:hidden;height:200px;border:solid silver 1px;padding:20px;text-align:center;">
-                                                <img src="img/logos/programs/{{$benH->Banner}}" style="width:40px;height:40px;border-radius:50%" alt="">
-                                                <br>
-                                                <a href="{{url('getActivityPage')}}?id={{$benH->ActivityId}}">{{$benH->ActivityName}}</a>
-                                                <br>
-                                                <small style="overflow:hidden;text-overflow:ellipsis;">of the <a href="{{url('getUniversityProject')}}?id={{$benH->ProjectId}}">{{$benH->ProjectName}} Project</a></small>
+                                        <div class="col-sm-3" style="border:solid silver 1px;text-align:center;padding:10px;">
+                                            <!--start sa graph-->
+                                            <div class="clearfix" title="Attended {{$benH->AttendanceCount}} out of  {{$benH->SchedCount}} Schedules" style="padding-left:63px;width: 100%;">
+                                                <div class="c100 p{{round(($benH->AttendanceCount/$benH->SchedCount)*100)}} small">
+                                                <!-- p50 = 50% progress -->
+                                                <span>
+                                                    <img src="img/logos/programs/{{$benH->Banner}}" style="width:55px;height:55px;border-radius:50%" alt="">
+                                                </span>
+                                                <div class="slice">
+                                                    <div class="bar"></div>
+                                                    <div class="fill"></div>
+                                                </div>
+                                                <span>
+                                                    <div class="circle-text" style="font-size:15px;">
+
+
+                                                    </div>
+
+                                                    </span>
+                                                </div>
                                             </div>
+                                            <a href="{{url('getActivityPage')}}?id={{$benH->ActivityId}}">{{$benH->ActivityName}}</a>
+                                            <br>
+                                            <small style="overflow:hidden;text-overflow:ellipsis;">of the <a href="{{url('getUniversityProject')}}?id={{$benH->ProjectId}}">{{$benH->ProjectName}} Project</a></small>
+
+                                                <!--end sa graph-->
                                         </div>
                                     @endforeach
+                                        
                                     </div>
                                 </div>
                             </div>
@@ -202,7 +274,6 @@
 			<!-- end sa footer-->
         </div>
     </div>
-    @include('includes.scripts')
     
 </body>
 

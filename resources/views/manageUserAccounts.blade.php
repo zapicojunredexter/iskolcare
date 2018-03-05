@@ -142,7 +142,9 @@
                                         <!--
                                         {$uniUser->Birthday}
                                         -->
-                                        {{(date('Y')-date('Y',strtotime($uniUser->Birthday)))}}</td>
+                                        {{(date('Y')-date('Y',strtotime($uniUser->Birthday)))}}
+                                
+                                </td>
                                 <td>{{$uniUser->AccountType}}</td>
                                 <td>
                                     <img src="default-img/trash.png" style="width:25px;" alt="">
@@ -161,9 +163,8 @@
                                 <th>FULL NAME</th>
                                 <th>CONTACT</th>
                                 <th>EMAIL</th>
-                                <th>BIRTHDATE</th>
+                                <th>AGE</th>
                                 <th>TYPE</th>
-                                <th></th>
                                 <th></th>
                                 <th></th>
                             </tr>
@@ -182,9 +183,11 @@
                                         </td>
                                         <td>{{$uniUser->AccountType}}</td>
                                         @if(Session::get('type')==="Director")
+                                        <!--
                                         <td>
                                             <img onclick="deleteAccount({{$uniUser->AccountId}})" data-toggle="tooltip" title="Delete this Account" src="default-img/trash.png" style="width:25px;" alt="">
                                         </td>
+                                        -->
                                         @endif
                                         @if(Session::get('type')==="Director" && $uniUser->AccountType === "Volunteer - Faculty")
                                             <td>
@@ -214,9 +217,8 @@
                                 <th>FULL NAME</th>
                                 <th>CONTACT</th>
                                 <th>EMAIL</th>
-                                <th>BIRTHDATE</th>
+                                <th>AGE</th>
                                 <th>TYPE</th>
-                                <th></th>
                                 <th></th>
                             </tr>
                             <?php $i=0;?>
@@ -228,12 +230,18 @@
                                         </td>
                                         <td>{{$uniUser->ContactNumber}}</td>
                                         <td>{{$uniUser->EmailAddress}}</td>
-                                        <td>{{$uniUser->Birthday}}</td>
+                                        <td>
+                                            
+                                            {{(date('Y')-date('Y',strtotime($uniUser->Birthday)))}}
+                                            <!--{{$uniUser->Birthday}}-->
+                                        </td>
                                         <td>{{$uniUser->AccountType}}</td>
                                         @if(Session::get('type')==="Director")
+                                        <!--
                                         <td>
                                             <img onclick="deleteAccount({{$uniUser->AccountId}})" data-toggle="tooltip" title="Delete this Account" src="default-img/trash.png" style="width:25px;" alt="">
                                         </td>
+                                        -->
                                         @endif
                                         <td>
                                             
@@ -265,7 +273,7 @@
                             <?php $i = 0;?>
                             @foreach($coordinators as $coordinator)
                                     <tr class="coordinator-table-tr" id="coordinator-table-tr-<?php echo $i++;?>">
-                                        <td><a href="{{url('viewProfile')}}?accid={{$uniUser->AccountId}}">{{$coordinator->LastName}}, {{$coordinator->Name}}</a></td>
+                                        <td><a href="{{url('viewProfile')}}?accid={{$coordinator->AccountId}}">{{$coordinator->LastName}}, {{$coordinator->Name}}</a></td>
                                         <td>
                                             <img src="img/logos/programs/{{$coordinator->Logo}}" style="width:30px;height:30px;" alt="">
                                             {{$coordinator->ProgramName}}
@@ -276,7 +284,7 @@
                                             @else
                                                 <td><a onclick="reassignCoordinator({{$coordinator->CoordinatorId}})"> Reassign</a></td>
                                             @endif
-                                            <td><a onclick="deleteCoordinator({{$coordinator->CoordinatorId}})">Delete</a></td>
+                                            <td><a onclick="deleteCoordinator({{$coordinator->CoordinatorId}})"><img src="default-img/trash.png" style="width:25px;" title="Delete Coordinator Record"></a></td>
                                         @else
                                             <td></td>
                                             <td></td>

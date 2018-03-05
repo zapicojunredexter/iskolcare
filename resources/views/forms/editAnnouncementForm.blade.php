@@ -56,8 +56,8 @@
 		            data: $("#editAnnouncementForm").serialize(),
                     type: "get", 
                     success: function(response) {
-                      alert("Successfully edited announcement");
-                      location.reload();
+                        swal("Successfully edited announcement","","success").then(()=>{location.reload();});
+
                     },
                     error: function(xhr) {
                         alert("Something went wrong!");

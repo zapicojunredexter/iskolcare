@@ -27,6 +27,8 @@ Route::get('/sample', function (Request $request) {
 
 
 
+    
+Route::get('editSubscriberAccountDetails','SubscribersController@editSubscriberAccountDetails');
 //landing page
 Route::get('/','HomeController@home');
 Route::post('/login','HomeController@login');
@@ -34,7 +36,10 @@ Route::get('/logout','HomeController@logout');
 //Route::get('/registration','HomeController@registration')->middleware(Test::class);
 Route::get('/registration','HomeController@registration');
 
+
 //start sa actual registration
+    
+Route::get('changeAccountType','SubscribersController@changeAccountType');
 Route::post('becomeSubscriber','SubscribersController@becomeSubscriber');
 Route::post('normalRegistration','RegUsersController@normalRegistration');
 Route::get('getAllUniUserAccounts','CoordinatorsController@getAllUniUserAccounts');
@@ -76,7 +81,7 @@ Route::get('manageUserAccounts','CoordinatorsController@manageUserAccounts');
 
 Route::get('viewPendingProposals','CoordinatorsController@viewPendingProposals');    
 //start sa programs
-Route::get('getProgramPage','HomeController@getProgramPage');
+//Route::get('getProgramPage','HomeController@getProgramPage');
 Route::post('addProgram','SubscribersController@addProgram');
 Route::get('editProgram','SubscribersController@editProgram');
 Route::get('deleteProgram','SubscribersController@deleteProgram');
@@ -115,11 +120,9 @@ Route::get('setCoordinates','CoordinatorsController@setCoordinates');
 
 Route::get('approvePhoto','SubscribersController@approvePhoto');
 Route::get('approveUnapprovedPhotos','SubscribersController@approveUnapprovedPhotos');
-
 Route::get('addSponsor','CoordinatorsController@addSponsor');
-
 Route::get('deleteActivitySponsor','CoordinatorsController@deleteActivitySponsor');
-
+Route::get('printToolResults','CoordinatorsController@printToolResults');
 
 
 //start sa volunteers and beneficiaries
@@ -189,13 +192,32 @@ Route::get('mobileSubmitEvalForm','MobileController@mobileSubmitEvalForm');
 Route::get('getProjectsHistorySummary','MobileController@getProjectsHistorySummary');
 Route::get('masterSearch','MobileController@masterSearch');
 
+Route::get('getSubscriptions','SuperAdminController@getSubscriptions');
+Route::get('addSubscription','SuperAdminController@addSubscription');
+Route::get('editSubscription','SuperAdminController@editSubscription');
+Route::get('deleteSubscription','SuperAdminController@deleteSubscription');
+Route::get('getSubscribedSchools','SuperAdminController@getSubscribedSchools');
+Route::get('getSubscribedSchools','SuperAdminController@getSubscribedSchools');
+Route::get('enableAccount','SuperAdminController@enableAccount');
 
+Route::get('disableAccount','SuperAdminController@disableAccount');
+
+
+
+
+Route::get('checkAttendanceMobile','MobileController@checkAttendanceMobile');
 
 
 Route::get('mobilesample',function(Request $request){
     $userType = "Registered User";
     $activityId = $request->input('activityId');
-   return View('TestWV',["activityId"=>$activityId,"userType"=>$userType]);
+    $activity = DB::select("select * from activities where ActivityId = ?",[$activityId]);
+    if(empty($activity)){
+        echo "Activity Not Found";
+        return;
+    }
+    $activity[0]->Schedules = DB::select("select * from schedules where ProgramId = ?",[$activityId]);
+   return View('TestWV',["activityId"=>$activityId,"userType"=>$userType,"activity"=>$activity[0]]);
 });
 Route::post('uploadPhotosFromMobile',function(Request $request){
     $activityId=$request->input('activityId');
@@ -224,22 +246,44 @@ Route::post('uploadPhotosFromMobile',function(Request $request){
 Route::get('printCertificates',function(Request $request){
     $activityId = $request->input('actId');
     $fontSize = $request->input('size');
-    $volunteers = DB::select('select * from volunteers v, accounts a where a.AccountId = v.AccountId and v.ProgramId = ?',[$activityId]);
-    return View('includes.printCertificates',['volunteers'=>$volunteers,'fontSize'=>$fontSize]);
+    $for=$request->input('for');
+    $participants=array();
+    if($for==="volunteers"){
+        $participants = DB::select('select * from volunteers v, accounts a where a.AccountId = v.AccountId and v.ProgramId = ? and v.VolunteerStatus = 1',[$activityId]);
+    }else{
+        $participants = DB::select('select * from beneficiaries v, accounts a where a.AccountId = v.AccountId and v.ProgramId = ? and v.BenStatus = 1',[$activityId]);
+        
+    }
+    return View('includes.printCertificates',['volunteers'=>$participants,'fontSize'=>$fontSize]);
 });
 //fb api
 Route::get('fb',function(Request $request){
-    $link = "http://127.0.0.1:8000/getActivityPage?id=1";
-    $link = $request->input('link');
-    return view('fb-api.index',["link"=>$link]);
+    //$link = "http://127.0.0.1:8000/getActivityPage?id=1";
+    $link = "http://127.0.0.1:8000".$request->input('link');
+    $message = $request->input('message');
+    return redirect("fb-api/index.php?link=".$link."&message=".$message);
+    //return view('fb-api.index',["link"=>$link]);
 });
 Route::get('app',function(){
     //echo 'haha';
     return view('fb-api.index');
 });
 Route::get('sample',function(){
-    //echo 'haha';
-   // return view('fb-api.sample');
-    //return View('forms.uploadCertificateForm');
     return View('notFound');
+});
+Route::get('checkActivities',function(){
+   $uniId = session("uniId"); 
+    $activityProgram = DB::select("select count(a.ActivityId) as ActivityCount from activities a,projects p where p.ProjectId = a.ProjectId and p.Level = ? and p.ProgramId in (select pr.ProgramId from programs pr where pr.Universityid = ?)",["Program",$uniId]);
+    $activityInstitution = DB::select("select count(a.ActivityId) as ActivityCount from activities a,projects p where p.ProjectId = a.ProjectId and p.Level = ? and p.ProgramId = ?",["Institution",$uniId]);
+    $actCount = DB::select("select s.MaxPrograms from subscribers s,universities u where u.SubscriberId = s.SubscriberId and u.UniId = ?",[$uniId]);
+    if(empty($actCount)){
+        echo "university does not exists";
+        return;
+    }
+    if($actCount[0]->MaxPrograms > $activityProgram[0]->ActivityCount + $activityInstitution[0]->ActivityCount){
+        echo "Can Add";
+    }else{
+        echo "Reached Max Number of Activities for University!";
+    }
+    //return View('notFound');
 });

@@ -15,5 +15,7 @@
     /*background-color: #29d159;*/
     background-color: #1b593e;
 }
-
+.close-span{
+    cursor:pointer;
+}
 

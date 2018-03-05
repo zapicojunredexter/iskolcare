@@ -53,9 +53,6 @@
 
                                     </div>
                                 </div>
-                                <!--
-                                <a class="glyphicon glyphicon-edit" style="font-size:13px; float: right; cursor:pointer; padding-top: 2px;padding-left: 5px;" onclick="editQuestion({{$question->QuestionId}});displayModal('editQuestionModal')">edit</a>
-                                -->
                                 <div class="row">
                                     <div class="col-sm-12">
                                     
@@ -76,7 +73,7 @@
                                 </div>
                                 @endforeach
                                                 
-                            <input type="submit" value="SUBMIT">
+                            <input type="submit" class="blue-button" style="margin-left:40%;" value="SUBMIT">
                             </div>
                         </form>
                     </div>

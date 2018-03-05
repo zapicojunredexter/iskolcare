@@ -16,6 +16,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 UPLOAD PHOTOS TO ACTIVITY
+                <span onclick="$('#uploadNewPhotosModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
                     

@@ -3,6 +3,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 ADD NEW ACTIVITY
+                <span onclick="$('#addActivityModal').modal('hide');" class="close-span">&times;</span>
+            
             </div>
             <div class="modal-body" style="">
                     
@@ -17,7 +19,7 @@
                     <!--
                     <input onkeyup="checkAddActivity()" type="text" id="act-venue" placeholder="Venue: Where will the Activity be held" name="activityVenue" class="form-control" required>
                     -->
-                  <input class="form-control" id="autocomplete" placeholder="Venue: Where will the Activity be held" name="activityVenue" onFocus="geolocate()" type="text"/>
+                    <input class="form-control" id="autocomplete" placeholder="Venue: Where will the Activity be held" name="activityVenue" onFocus="geolocate()" type="text"/>
                     <input onkeyup="checkAddActivity()" onkeyup="checkAddActivity()" type="text" id="act-target" placeholder="Target Audience: Who are the targeted people of this Activity?" name="targetAudience" class="form-control" required>
                     <input type="hidden" name="projectId" id="activityProjectId" name="projectId" class="form-control" value="{{$project->ProjectId}}" readonly>
                     Allow People from other Universities to Participate?
@@ -31,9 +33,9 @@
       <input class="form-control" id="autocomplete" placeholder="Enter your address"
              onFocus="geolocate()" type="text"/>
 -->
-                    
-<input type="text" id="cityLat" name="cityLat" />
-<input type="text" id="cityLng" name="cityLng" /> 
+
+                    <input style="display:none;" type="text" id="cityLat" name="cityLat" />
+                    <input style="display:none;" type="text" id="cityLng" name="cityLng" /> 
                 </div>
                 
                 
@@ -47,7 +49,7 @@
                     <div id="sched-container" style="margin:0px;padding:0px;">
                         <div class="row">
                             <div class="col-sm-6">
-                                <input type="date" name="date[]" class="form-control" style="height:100px;">
+                                <input type="date" onchange="this.value=checkActivitySchedule(this.value)" name="date[]" class="form-control" style="height:100px;" value="{{date('Y-m-d')}}" min="{{date('Y-m-d')}}">
                             </div>
                             <div class="col-sm-6">
                                 <input type="time" name="time[]" class="form-control" value="12:00:00" style="height:50px;">
@@ -72,6 +74,17 @@
 </div>
 
 <script>
+
+function checkActivitySchedule(value){
+    if(value === ''){
+        return '';
+    }else
+    if(value<'{{date('Y-m-d')}}'){
+        return '{{date('Y-m-d')}}';
+    }else{
+        return value;
+    }
+}
 function checkAddActivity(){
     var name,desc,venue,target;
     name = $('#act-name').val();
@@ -86,10 +99,9 @@ function checkAddActivity(){
     }
 }
 function addActivitySchedule(){
-    $('#sched-container').append('<div class="row"><div class="col-sm-6"><input type="date" name="date[]" class="form-control" style="height:100px;"></div><div class="col-sm-6"><input type="time" name="time[]" class="form-control" value="12:00:00" style="height:50px;"><input type="time" name="timeEnd[]" class="form-control" value="12:00:00" style="height:50px;"></div></div><br>');
+    $('#sched-container').append('<div class="row"><div class="col-sm-6"><input type="date" name="date[]" onchange="this.value=checkActivitySchedule(this.value)" class="form-control" value="{{date('Y-m-d')}}" style="height:100px;" min="{{date('Y-m-d')}}"></div><div class="col-sm-6"><input type="time" name="time[]" class="form-control" value="12:00:00" style="height:50px;"><input type="time" name="timeEnd[]" class="form-control" value="12:00:00" style="height:50px;"></div></div><br>');
 }
 function goToSchedules(){
-    //$("#act-main-details").slideToggle("slide",{direction:"left"});
     var name,desc,venue,target;
     name = $('#act-name').val();
     desc = $('#act-desc').val();
@@ -98,7 +110,6 @@ function goToSchedules(){
     if((name)!=="" && (desc).trim()!=="" && (venue).trim()!=="" && (target).trim()!==""){
         $("#act-main-details").toggle("slide");
         $("#act-sched-details").toggle("slide");
-    
     }else{
         alert('please fill up all fields');
     }

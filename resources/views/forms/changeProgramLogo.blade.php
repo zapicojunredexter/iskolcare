@@ -6,6 +6,8 @@
         <div class="modal-content" style="">
             <div class="modal-header">
                 CHANGE PROGRAM LOGO
+                <span onclick="$('#changeProgramLogo').modal('hide');" class="close-span">&times;</span>
+
             </div>
             <div class="modal-body" style="">
                 

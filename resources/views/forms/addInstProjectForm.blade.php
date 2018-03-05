@@ -25,6 +25,8 @@
         <div class="modal-content">
             <div class="modal-header">
                 Add New Institutional Level Project
+                
+                <span onclick="$('#addInstProjectModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
 
@@ -73,12 +75,15 @@
                 //alert("successfully added new project!");
                 //location.reload();
                     if(response.indexOf("Successfully added new project")===0){
-                        alert("Successfully added new project");
+                        //alert("Successfully added new project");
                         var projId=response.substring(30,response.length);
-                    
-                        window.location.href="{{url('getUniversityProject')}}?id="+projId+"#click-change-cover-photo";
+                        swal("Successfully added new project","","success").then(()=>{
+                            window.location.href="{{url('getUniversityProject')}}?id="+projId+"#click-change-cover-photo";
+                        });
+
                     }else{
-                        alert(response);
+                        swal(response,"","error").then(()=>{$('#add-inst-button').prop('disabled',false);});
+
                     }
                 },
                 error: function(xhr) {

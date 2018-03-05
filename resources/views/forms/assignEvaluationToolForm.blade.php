@@ -3,6 +3,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 RELEASE EVALUATION TOOL
+                <span onclick="$('#assignEvaluationToolModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
                     
@@ -22,7 +23,7 @@
                 </div>
                 <div class="col-sm-3">From Date</div>
                 <div class="col-sm-9">
-                    <input type="date" value="{{date('Y-m-d')}}" onchange="checkEvaluationTool();" id="fromDate" name="fromDate" class="form-control">
+                    <input type="date" value="{{date('Y-m-d')}}" onchange="checkEvaluationTool();" id="fromDate" name="fromDate" class="form-control" readonly>
 
                 </div>
                 <div class="col-sm-3">To Date</div>
@@ -73,6 +74,7 @@
                     });
                 }else{
                     alert('To Date cannot be before From Date');
+                    $('#release-evaluation-button').attr('disabled',false);
                 }
             }
         </script>

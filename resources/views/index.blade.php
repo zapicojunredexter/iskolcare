@@ -188,10 +188,10 @@ style: none;
 						<input type="password"  placeholder="Password" name="password">
 						<br><br>
                         
-						<button type="submit" class="btn btn-primary btn-xl page-scroll" style="width: 80%;">LOGIN NOW</button>
+						<button type="submit" class="btn btn-primary btn-xl page-scroll" style="width: 80%;background-color:reguserhea#1b593e!important;">LOGIN NOW</button>
 						
 						<br>
-						<p>Don't have any account yet? <a href="{{url('/registration')}}?type=free">REGISTER HERE!</a></p>
+						<p>Don't have any account yet? <a href="{{url('/registration')}}?type=subsc">SUBSCRIBE NOW!</a></p>
 						<!--<div class='noty'>
 						</div>
 						<input type='submit' name='submit' value='Login' class='loginbutton'>
@@ -251,7 +251,7 @@ style: none;
         </div>
     </header>
 
-    <section class="bg-primary" id="about">
+    <section class="bg-primary" id="about" style="background-color:#1b593e!important;">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8 col-lg-offset-2 text-center">
@@ -268,46 +268,69 @@ style: none;
     </section>
 
     <section id="services">
-        <div class="container">
+       <div class="container">
             <div class="row">
                 <div class="col-lg-12 text-center">
-                    <h2 class="section-heading">At Your Service</h2>
+                    <h2 class="section-heading">Subscriptions Offered</h2>
                     <hr class="primary">
                 </div>
             </div>
         </div>
+        
+        
+        
+        
         <div class="container">
             <div class="row">
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="service-box">
-                        <i class=""><img src="default-img/serv1.png" class="bounceIn"></i>
-                        <h3>Wedding Photography</h3>
-                        <p class="text-muted">Immortalize memories of love with a wedding photography. A documentation of the union between two individuals to become as one.</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="service-box">
-                        <i class=""><img src="default-img/serv2.png" class="servive-img"></i>
-                        <h3>Birthday Photography</h3>
-                        <p class="text-muted">Once a year celebration of a person's life. When you are young, one of the most special days of the year is your birthday. Whether it’s a home party or special day out.</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="service-box">
-                        <i class=""><img src="default-img/serv3.png" class="servive-img"></i>
-                        <h3>Graduation Photography</h3>
-                        <p class="text-muted">Capturing one of the greatest moment a person can experience. Graduation day is the day all of your hard works in school has paid off.</p>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6 text-center">
-                    <div class="service-box">
-                        <i class=""><img src="default-img/serv4.png" class="servive-img"></i>
-                        <h3>Maternity Photography</h3>
-                        <p class="text-muted">Treasuring every moment of the mother who’s undergoing the stages of pregnancy. From the first month until the child is born.</p>
-                    </div>
-                </div>
+                <div style="float: left; text-align: center; width: 25%; margin-left: 5%; margin-top: 5%; background-color: rgb(120,207,191); color: white;box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);">
+		 <h3>PREMIUM</h3>
+		 <div style="text-align: left; background-color: rgb(130,218,202); height: 100%; padding-top: 10%; padding-bottom: 10%; padding-left: 5%;">
+		 <small style="font-size: 40px; padding-left: 15%;">₱ 249.99</small>
+		 </div>
+		 <div style="text-align: center; background-color: #f3f3f3; height: 100%; padding-top: 3%; color: rgb(195,195,195); padding-bottom: 10%;">
+		 <h5 style="padding-bottom: 2%; padding-top: 2%;">Can add 10 activites</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Chu chu chu</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Cha cha cha cha</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Eklabosh ek ek</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Amen</h5>
+		 <button>Go Premium</button>
+		 </div>
+		 </div>
+		 
+		 <div style="float: right; text-align: center; width: 25%; margin-left: 2.5%; margin-right: 5%; margin-top: 5%; background-color: rgb(227,83,108); color: white;box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);">
+		 <h3>PLATINUM</h3>
+		 <div style="text-align: left; background-color: rgb(235,99,121); height: 100%; padding-top: 10%; padding-bottom: 10%; padding-left: 5%;">
+		 <small style="font-size: 40px; padding-left: 12%;">₱ 1,149.99</small>
+		 </div>
+		 <div style="text-align: center; background-color: #f3f3f3; height: 100%; padding-top: 3%; color: rgb(195,195,195); padding-bottom: 10%;">
+		 <h5 style="padding-bottom: 2%; padding-top: 2%;">Can add 50 activites</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Chu chu chu</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Cha cha cha cha</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Eklabosh ek ek</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Amen</h5>
+		 <button class="button2">Go Platinum</button>
+		 </div>
+		 </div>
+		 
+		 <div style="float: right; text-align: center; width: 25%; margin-left: 5%; margin-right: 5%; margin-top: 5%; background-color: rgb(62,198,224); color: white;box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);">
+		 <h3>GOLD</h3>
+		 <div style="text-align: left; background-color: rgb(83,207,233); height: 100%; padding-top: 10%; padding-bottom: 10%; padding-left: 5%;">
+		 <small style="font-size: 40px; padding-left: 15%;">₱ 459.99</small>
+		 </div>
+		 <div style="text-align: center; background-color: #f3f3f3; height: 100%; padding-top: 3%; color: rgb(195,195,195); padding-bottom: 10%;">
+		 <h5 style="padding-bottom: 2%; padding-top: 2%;">Can add 20 activites</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Chu chu chu</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Cha cha cha cha</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Eklabosh ek ek</h5>
+		 <h5 style="padding-top: 2%; padding-bottom: 2%;">Amen</h5>
+		 <button class="button1">Go Gold</button>
+		 </div>
+		 </div>
             </div>
         </div>
+        
+        
+        
        <div class="container" style="padding-top: 35px">
         <div class="row">
                 	<div class="col-xl-12 text-center">
@@ -319,7 +342,7 @@ style: none;
  <aside class="bg-dark">
         <div class="container text-center">
             <div class="call-to-action">
-                <h2>Had any questions in mind?</h2>
+                <h2>Any Questions You Would Like To Ask?</h2>
                 <a href="#contact" class="btn btn-default btn-xl wow tada page-scroll">Contact Us!</a>
             </div>
         </div>
@@ -339,7 +362,7 @@ style: none;
                 </div>
                 <div class="col-lg-4 text-center">
                     <i class="fa fa-envelope-o fa-3x wow bounceIn" data-wow-delay=".1s"></i>
-                    <p><a href="mailto:your-email@your-domain.com">ifocus@feedback.com</a></p>
+                    <p><a href="mailto:your-email@your-domain.com">iskolcare@feedback.com</a></p>
                 </div>
             </div>
         </div>

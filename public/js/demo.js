@@ -500,12 +500,15 @@ demo = {
         marker.setMap(map);
     },
 
-    showNotification: function(from, align) {
+    showNotification: function(from, align, message) {
         color = Math.floor((Math.random() * 4) + 1);
-
+        color = 0;
+        //alert(color);
+        //color="#1b593e";
+        //message: "Welcome to <b>Light Bootstrap Dashboard</b> - a beautiful freebie for every web developer."
         $.notify({
-            icon: "nc-icon nc-app",
-            message: "Welcome to <b>Light Bootstrap Dashboard</b> - a beautiful freebie for every web developer."
+            icon: "nc-icon nc-bell-55",
+            message: message
 
         }, {
             type: type[color],

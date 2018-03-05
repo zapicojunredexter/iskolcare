@@ -4,11 +4,12 @@
         <div class="modal-content">
             <div class="modal-header">
                 ADD BENEFICIARIES TO ACTIVITY
+                <span onclick="$('#addNewBeneficiariesModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
                     
 
-            <form method="get" action="{{url('addBeneficiaries')}}">
+            <form method="get" onsubmit="return false;" id="addNewBeneficiariesForm">
     <input type="hidden" name="activityId" value="{{$activity->ActivityId}}">
             <table class="table">
         <tr>
@@ -39,7 +40,7 @@
     </table>
 
 
-    <button style="margin-left:40%;" class="blue-button" onclick="this.disabled='true';this.form.submit();">SUBMIT</button>
+    <button style="margin-left:40%;" type="submit" class="blue-button" id="add-new-beneficiaries-button" onclick="this.disabled='true';addNewBeneficiaries();">SUBMIT</button>
     </form>
 
 
@@ -54,55 +55,27 @@
 </div>
 
 
-
-<form method="get" action="{{url('addBeneficiaries')}}">
-    <input type="hidden" name="activityId" value="{{$activity->ActivityId}}">
-    <div id="addBeneficiariesModal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span class="close" onclick="closeModal('addBeneficiariesModal')">×</span>
-                    <h2>ADD BENEFICIARIES</h2>
-            </div>
-            <div class="modal-body">
-                activityId
-                <table class="table">
-                    <tr>
-                        <th>Name</th>
-                        <th>Username</th>
-                        <th>Password</th>
-                        <th>Contact Number</th>
-                        <th>Address</th>
-                        <th>Email Address</th>
-                        <th>Birth Date</th>
-                        <th>Gender</th>
-                    </tr>
-                    @foreach($activity->uniUsers as $uniUser)
-                        @if($uniUser->AccountType === "Beneficiary - Leader" || $uniUser->AccountType === "Beneficiary - Member")
-                        <tr id="row-{{$uniUser->AccountId}}">
-                            <td>{{$uniUser->LastName}}, {{$uniUser->Name}}</td>
-                            <td>{{$uniUser->Username}}</td>
-                            <td>{{$uniUser->Password}}</td>
-                            <td>{{$uniUser->ContactNumber}}</td>
-                            <td>{{$uniUser->Address}}</td>
-                            <td>{{$uniUser->EmailAddress}}</td>
-                            <td>{{$uniUser->Birthday}}</td>
-                            <td>{{$uniUser->Gender}}</td>
-                            <td id="{{$uniUser->AccountId}}Button">
-                                <input type="hidden" readonly>
-                            </td>
-                            <td><input type="checkbox" name="accIds[]" value="{{$uniUser->AccountId}}"></td>
-                            <td id="{{$uniUser->AccountId}}Type">
-                                <input name="{{$uniUser->AccountId}}Type" type="hidden" value="{{$uniUser->AccountType}}">
-                            </td>
-                        </tr>
-                        @endif
-                    @endforeach
-                </table>
-            </div>
-            <div class="modal-footer">      
-                <input type="submit" value="Approve">
-            </div>
-        </div>
-      </div>
-    
-</form>
+<script>
+    function addNewBeneficiaries(){
+        $.ajax({
+            url: "{{url('addBeneficiaries')}}",
+            type: "get", 
+            data: $("#addNewBeneficiariesForm").serialize(),
+            success: function(response) {
+                if(response === "None Selected"){
+                    swal(response,"","error").then(()=>{
+                        $('#add-new-beneficiaries-button').attr("disabled",false);
+                    });
+                }else{     
+                    swal(response,"","success").then(()=>{
+                        location.reload(true);
+                    });
+                }
+            },
+            error: function(xhr) {
+                console.log(xhr);
+                alert("Something went wrong");
+            }
+        });
+    }
+</script>

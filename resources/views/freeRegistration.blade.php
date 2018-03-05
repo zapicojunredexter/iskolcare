@@ -387,33 +387,34 @@ color: #4ba4ff;
     </nav>
         
         
-        
-        <div style="margin-left:200px;margin-right:200px;">
-            <h3>FREE USERS REGISTRATION</h3>
-            <form method="POST" action='{{ url('/normalRegistration')}}'>{{csrf_field()}}
-            <br>First Name: 
-            <input type="text" name="name" placeholder="Name" class="form-control"><br>Last Name: 
-            <input type="text" name="lastName" placeholder="lastName" class="form-control">
-            <br>Username:
-            <input type="text" name="username" placeholder="Username" class="form-control">
-            <br>Password:
-            <input type="text" name="password" placeholder="Password" class="form-control">
-            <br>Contact Number
-            <input type="text" name="contactNumber" placeholder="Contact Number" class="form-control">
-            <br>Address
-            <input type="text" name="address" placeholder="Address" class="form-control">
-            <br>E-mail Address
-            <input type="text" name="emailAddress" placeholder="Email Address" class="form-control">
-<br>Birthdate
-            <input type="date" name="birthdate" value="<?php echo date('Y-m-d'); ?>" class="form-control">
-<br>Gender<br>
-            Male <input type="radio" value="Male" name="gender"><br>
-            Female<input type="radio" value="Female" name="gender"><br>
+        <div class="container">
+            <div style="margin-left:200px;margin-right:200px;">
+                <h3>FREE USERS REGISTRATION</h3>
+                <form method="POST" action='{{ url('/normalRegistration')}}'>{{csrf_field()}}
+                <br>First Name: 
+                <input type="text" name="name" placeholder="Name" class="form-control"><br>Last Name: 
+                <input type="text" name="lastName" placeholder="lastName" class="form-control">
+                <br>Username:
+                <input type="text" name="username" placeholder="Username" class="form-control">
+                <br>Password:
+                <input type="text" name="password" placeholder="Password" class="form-control">
+                <br>Contact Number
+                <input type="text" name="contactNumber" placeholder="Contact Number" class="form-control">
+                <br>Address
+                <input type="text" name="address" placeholder="Address" class="form-control">
+                <br>E-mail Address
+                <input type="text" name="emailAddress" placeholder="Email Address" class="form-control">
+    <br>Birthdate
+                <input type="date" name="birthdate" value="<?php echo date('Y-m-d'); ?>" class="form-control">
+    <br>Gender<br>
+                Male <input type="radio" value="Male" name="gender"><br>
+                Female<input type="radio" value="Female" name="gender"><br>
 
 
 
-            <input type="submit" value="Submit">
-            </form>
+                <input type="submit" value="Submit">
+                </form>
+            </div>
         </div>
     </body>
 </html>

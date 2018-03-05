@@ -41,7 +41,7 @@
 
 
 
-    
+                
     $.ajax({
 		url: "{{url('getUnreadNotifications')}}",
 		type: "get", 
@@ -55,6 +55,14 @@
                     $('#notifitems').append("<a class='dropdown-item' href='"+response[i].LinksTo+"&notifId="+response[i].NotificationId+"'>"+response[i].Description+"</a>");
                 else
                     $('#notifitems').append("<hr><a class='dropdown-item' href='"+response[i].LinksTo+"&notifId="+response[i].NotificationId+"'>"+response[i].Description+"</a>");
+                @if(Request::is('getProfile')) 
+                        
+                if(response[i].Description.indexOf("fillUpEvaluationForm") === 0){
+                    
+                    demo.showNotification('top','left',response[i].Description + "! Click <a href='"+response[i].LinksTo+"&notifId="+response[i].NotificationId+"'>here</a> to Fill up");
+                }
+                @endif
+
             }
             if(response.length>0){
                 $('#notif-counter').css('display','block');
@@ -138,26 +146,58 @@
                 -->
                 <script>
                     function masterSearch(value){
+                        
+                        $('#search-results').html('');
                         if(value!==""){
+                             $.ajax({
+                                url: "{{url('masterSearch')}}?q="+value,
+                                type: "get", 
+                                success: function(response) {
+                                    response=JSON.parse(response);
+                                    for(var i = 0;i<response.length;i++){
+                                        console.log(response[i]);
+                                        
+                                        //$('#search-results').append('<div class="row"><div class="col-sm-2"><img src="'+response[i].FilePath+response[i].Picture+'" style="width:30px;height:30px;"></div><div class="col-sm-9"><a href="'+response[i].Link+response[i].ItemId+'">'+response[i].ItemName+'</a></div></div><hr>');
+                                        $('#search-results').append('<div class="container"><img src="'+response[i].FilePath+response[i].Picture+'" style="width:30px;height:30px;"><a href="'+response[i].Link+response[i].ItemId+'">'+response[i].ItemName+'</a></div>    <hr>');
+                                    }
+                                    console.log(response);
+                                },
+                                error: function(xhr) {
+
+                                }
+                            });
                             $('#search-results').css('display','block');
+                            /*<div class="row
+                                <div class="col-sm-2">
+                                    <img src="default-img/mini-logo.png" style="width:30px;height:30px;">
+                                </div>
+                                <div class="col-sm-10">
+                                    
+                                    haha haha hahahaha haha hahahaha haha hahahaha haha haha
+                                </div>
+                            </div>
+                            <hr>*/
                         }else{
                             $('#search-results').css('display','none');    
                         }
                     }
                 </script>
                 <li class="nav-item">
-                    <input type="text" name="" onkeyup="masterSearch(this.value)" class="serch" id="">
-                    <div id="search-results" style="display:none;position:absolute;background-color:silver;width:180px;z-index:100;">
-                    adsas<br>
-                    adsas<br>
-                    adsas<br>
-                    adsas<br>
-                    adsas<br>
+                    <input type="text" name="" onkeyup="masterSearch(this.value)" class="serch" style="width:350px;">
+                    <div id="search-results" style="display:none;position:absolute;background-color:#ece8e8;width:350px;z-index:100;height:100px;overflow-y:scroll;padding:10px;min-width:350px;">
+                        <div style="padding:10px;">
+                            <div class="row">
+                                <div class="col-sm-2">
+                                    <img src="default-img/mini-logo.png" style="width:30px;height:30px;">
+                                </div>
+                                <div class="col-sm-10">
+                                    
+                                    haha haha hahahaha haha hahahaha haha hahahaha haha haha
+                                </div>
+                            </div>
+                            <hr>
+                        </div>
                     </div>
-                </li>
-                <li class="nav-item" style="margin-right:20px;">
-                    <a>Logged in as {{Session::get('type')==='Registered User'?'Regular User':Session::get('type')}}</a>
-                    
                 </li>
                             
                 <li class="nav-item">
@@ -174,19 +214,41 @@
 
 
                             <li class="dropdown nav-item">
-            
-                                <a href="#" class="dropdown-toggle nav-link" style="padding:0px;" data-toggle="dropdown">
-        
+                                <a class="nav-link dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor: pointer;">
+                               
                                     @if(Session::get('type')==='Director')
         
-                                        <img src="img/logos/{{Session::get('pic')}}" style="border:solid rgba(0,0,0,0.2) 3px; border-radius: 50%;width:50px;height:50px;">
-        
+                                     <!--  <img src="img/logos/{{Session::get('pic')}}" style="border:solid rgba(0,0,0,0.2) 3px; border-radius: 50%;width:50px;height:50px;">-->
+                                    
+                                    <!--<img src="img/logos/{{Session::get('pic')}}" style="border:solid rgba(0,0,0,0.2) 3px; border-radius: 50%;width:50px;height:50px;"><span class="badge badge-danger">3</span>-->
+                                    
+                                    <div class="profile-header-container">   
+                                        <div class="profile-header-img">
+                                            <img class="img-circle ppimg" src="img/logos/{{Session::get('pic')}}" style="width:50px;height:50px;" />
+                                            <!-- badge -->
+                                            <div class="rank-label-container">
+                                                <span class="label label-default rank-label" style="color: white !important">{{Session::get('type')}}</span>
+                                            </div>
+                                        </div>
+                                    </div> 
+                        
+                                    
                                     @else
         
-                                        <img src="img/dp/{{Session::get('pic')}}" style="border:solid rgba(0,0,0,0.2) 3px; border-radius: 50%;width:50px;height:50px;">
+        
+                                    <div class="profile-header-container">   
+                                        <div class="profile-header-img">
+                                            <img class="img-circle ppimg" src="img/dp/{{Session::get('pic')}}" style="width:50px;height:50px;" />
+                                            <!-- badge -->
+                                            @if(Session::get('type') !== "Registered User")
+                                                <div class="rank-label-container">
+                                                    <span class="label label-default rank-label" style="color: white !important">{{Session::get('type')}}</span>
+                                                </div>
+                                            @endif
+                                        </div>
+                                    </div> 
         
                                     @endif
-        
                                 </a>
         
                                 <ul class="dropdown-menu dropdown-menu-right">
@@ -198,7 +260,6 @@
                                     <li onclick="window.location.href='{{url('logout')}}'" class="dropdown-item"><a href="{{url('logout')}}">Logout</a></li>
         
                                 </ul>
-        
                             </li>
         
                         </ul>

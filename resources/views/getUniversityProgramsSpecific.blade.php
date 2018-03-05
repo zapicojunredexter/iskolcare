@@ -80,7 +80,9 @@
                                     <div style="float:right;">
                                         @if(Session::get('type')==='Director' && Session::get('uniId')===$program->UniId)
                                             <img src="default-img/edit.png" data-toggle="modal" data-target="#editProgramModal" style="width:20px;margin-right:5px;margin-top:5px;" alt="edit">
-                                            <img src="default-img/trash.png" style="width:20px;margin-right:5px;margin-top:5px;" onclick="deleteProgram({{$program->ProgramId}})" alt="delete">
+                                            @if(sizeof($program->Projects)===0)
+                                                <img src="default-img/trash.png" style="width:20px;margin-right:5px;margin-top:5px;" onclick="deleteProgram({{$program->ProgramId}})" alt="delete">
+                                            @endif
                                             <script>
                                                 function deleteProgram(programId){
                                                     if(confirm('Are you sure you want to delete this program')){
@@ -93,16 +95,16 @@
                                                         
                                     <small id="sm" style="font-size: 30px; margin-left: 2px;">{{$program->ProgramName}}</small>
                                     <br>
-                                    <p id="sm" style="overflow-y:auto;overflow-x:hidden;height:50px;font-size: 15px; margin-left: 8px;">
-                                        <?php echo nl2br($program->ProgramDescription); ?>
-                                    </p>
-                                    <br>
-                                    <br>
-                                    <p id="sm" style="overflow-y:auto;overflow-x:hidden;height:100px;font-size: 15px; margin-left: 10px; margin-right: 40px; text-align: justify;">
-                                        <small style="margin-left: 50px;"></small>
-                                        {{$program->ProgramObjective}}
-                                      
-                                    </p>
+                                    <div style="overflow:auto;">
+                                        <p id="sm" style="height:50px;font-size: 15px; margin-left: 8px; ">
+                                            <?php echo nl2br($program->ProgramDescription); ?>
+                                        </p>
+                                        <p id="sm" style="height:100px;font-size: 15px; margin-left: 10px; margin-right: 40px; text-align: justify;">
+                                            <small style="margin-left: 50px;"></small>
+                                            <?php echo nl2br($program->ProgramObjective); ?>
+
+                                        </p>
+                                    </div>
                                 </div>
                                 
 

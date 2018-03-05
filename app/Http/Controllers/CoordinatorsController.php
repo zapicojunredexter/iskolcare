@@ -27,13 +27,36 @@ class CoordinatorsController extends Controller
                 $account = $account[0];
                 
                 if($account->UniversityId === session('uniId')){
-                    $account->partHist = DB::select("select * from beneficiaries b, activities a,projects p where p.ProjectId = a.ProjectId and a.ActivityId = b.ProgramId and b.AccountId = ? and a.ActivityStatus = ? and p.Status = ?",[$account->AccountId,"Approved","Approved"]);
+                    DB::select("select * from programs");
+                    $account->partHist = DB::select("select a.ActivityName,a.ActivityId,p.Banner,p.ProjectName,p.ProjectId,b.BeneficiaryId from beneficiaries b, activities a,projects p where p.ProjectId = a.ProjectId and a.ActivityId = b.ProgramId and b.AccountId = ? and a.ActivityStatus = ? and p.Status = ? and b.BenStatus = 1",[$account->AccountId,"Approved","Approved"]);
+                    //$account->partHist = DB::select("select a.ActivityName,a.ActivityId,p.Banner,p.ProjectName,p.ProjectId,count(ba.BenAttendanceId) as AttendanceCount,count(s.SchedId) as SchedCount from beneficiaries b, activities a,projects p,beneficiaryattendances ba,schedules s where s.ProgramId = a.ActivityId and ba.BeneficiaryId = b.BeneficiaryId and p.ProjectId = a.ProjectId and a.ActivityId = b.ProgramId and ba.Status='Present' and b.AccountId = ? and a.ActivityStatus = ? and p.Status = ? and b.BenStatus = 1 group by a.ActivityName,a.ActivityId,p.Banner,p.ProjectName,p.ProjectId",[$account->AccountId,"Approved","Approved"]);
                     
+                    $account->volHist = DB::select("select a.ActivityName,a.ActivityId,p.Banner,p.ProjectName,p.ProjectId,v.VolunteerId from volunteers v, activities a,projects p where p.ProjectId = a.ProjectId and a.ActivityId = v.ProgramId and v.AccountId = ? and a.ActivityStatus = ? and p.Status = ? and v.VolunteerStatus",[$account->AccountId,"Approved","Approved"]);                    
+                    //$account->volHist = DB::select("select a.ActivityName,a.ActivityId,p.Banner,p.ProjectName,p.ProjectId,count(va.VolAttendanceId) as AttendanceCount,count(s.SchedId) as SchedCount from volunteers v, activities a,projects p,volunteerattendances va,schedules s where s.ProgramId = a.ActivityId and va.VolunteerId = v.VolunteerId and p.ProjectId = a.ProjectId and v.VolunteerStatus=1 and a.ActivityId = v.ProgramId and v.AccountId = ? and a.ActivityStatus = ? and p.Status = ? and v.VolunteerStatus group by a.ActivityName,a.ActivityId,p.Banner,p.ProjectName,p.ProjectId",[$account->AccountId,"Approved","Approved"]);
                     
-                    $account->volHist = DB::select("select * from volunteers v, activities a,projects p where p.ProjectId = a.ProjectId and a.ActivityId = v.ProgramId and v.AccountId = ? and a.ActivityStatus = ? and p.Status = ?",[$account->AccountId,"Approved","Approved"]);
+                    foreach($account->partHist as $partHist){
+                        $schedCounter = DB::select("select count(SchedId) as SchedCounter from schedules where ProgramId = ?",[$partHist->ActivityId]);
+                        $attendanceCounter = DB::select("select count(BeneficiaryId) as AttendanceCounter from beneficiaryattendances where BeneficiaryId = ? and Status='Present'",[$partHist->BeneficiaryId]);
+                        $partHist->AttendanceCount=$attendanceCounter[0]->AttendanceCounter;
+                        $partHist->SchedCount=$schedCounter[0]->SchedCounter;
+                    }
+                    
+                    foreach($account->volHist as $volHist){
+                        
+                        $schedCounter = DB::select("select count(SchedId) as SchedCounter from schedules where ProgramId = ?",[$volHist->ActivityId]);
+                        $attendanceCounter = DB::select("select count(VolunteerId) as AttendanceCounter from volunteerattendances where VolunteerId = ? and Status='Present'",[$volHist->VolunteerId]);
+                        $volHist->AttendanceCount=$attendanceCounter[0]->AttendanceCounter;
+                        $volHist->SchedCount=$schedCounter[0]->SchedCounter;
+                        
+                    }
+                    
+                     
+                    $account->CoordinatorHistory = DB::select("select * from programs p,coordinators c where c.ProgramId = p.ProgramId and c.AccountId = ? order by c.isActive desc",[$account->AccountId]);
                     return View("viewProfile",["account"=>$account]);
                 }else{
-                    echo "cannot view profile of accounts from other universities";
+                    $message = "Cannot View profile of Accounts from Other Schools";    
+                    return View('notFound',["message"=>$message]);
+        
                 }
             }else{
                 echo "account not found";
@@ -214,7 +237,6 @@ class CoordinatorsController extends Controller
                 if($status==='Approved'){
                     
                     $program=DB::select("select * from programs pr,projects pj where pr.ProgramId=pj.ProgramId and pj.ProjectId=?",[$id]);
-                    print_r($program);
                     $coordinators=DB::select("select * from coordinators where ProgramId=?",[$program[0]->ProgramId]);
                     foreach($coordinators as $coordinator){
                         
@@ -276,6 +298,7 @@ class CoordinatorsController extends Controller
 	function addActivity(Request $request){
         if(self::checkRestr()){
             $activityName=$request->input('activityName');
+            $activityName=str_replace("`","'",$activityName);
             $activityDescription=$request->input('activityDescription');
             $activityVenue=$request->input('activityVenue');
             $targetAudience=$request->input('targetAudience');
@@ -305,10 +328,26 @@ class CoordinatorsController extends Controller
                         $message = "Invalid Time entered";
                     }
                     $countScheds++;
-                }else{
-                    
+                }
+                
+                if($date[$i]<=date('Y-m-d')){
+                    $message = "Selected Dates Must be from Tomorrow Onwards";
                 }
             }
+            
+            //checking if duplicate dates
+            for($i=0;$i<sizeof($date);$i++){
+                if(trim($date[$i])!==''&&trim($time[$i])!==''&&trim($timeEnd[$i])!==''){
+                    for($j=0;$j<sizeof($date);$j++){
+                        if(trim($date[$j])!==''&&trim($time[$j])!==''&&trim($timeEnd[$j])!==''){
+                            if($date[$i] === $date[$j] && $i!==$j){
+                                $message = "Found Duplicate Values for Dates";
+                            }
+                        }
+                    }
+                }
+            }
+            
             if($countScheds === 0){
                 $message = "Must have at least 1 valid schedule";
             }
@@ -316,6 +355,7 @@ class CoordinatorsController extends Controller
                 echo $message;
                 return;
             }
+            
             if(empty($cityLat) && empty($cityLng)){
                 DB::insert('insert into activities (ActivityName,ActivityDescription,ActivityVenue,TargetAudience,ProjectId,ActivityStatus,isExclusive) 
                 values (?, ?, ?, ?, ?, ?, ?)', [$activityName,$activityDescription,$activityVenue,$targetAudience,$projectId,$status,$isExclusive]);
@@ -363,8 +403,8 @@ class CoordinatorsController extends Controller
             echo $id;
             //$projects=DB::select("select * from activities a, projects p,programs r where r.ProgramId=p.ProjectId and a.ProjectId=p.ProjectId and a.ActivityId=?",[$id]);
             $projects=DB::select("select * from activities a,projects r,programs p where p.ProgramId=r.ProgramId and r.ProjectId=a.ProjectId and a.ActivityId=?",[$id]);
-            print_r($projects);
             $activityName=$request->input('activityName');
+            $activityName=str_replace("`","'",$activityName);
             $activityDescription=$request->input('activityDescription');
             $activityVenue=$request->input('activityVenue');
             $targetAudience=$request->input('targetAudience');
@@ -376,7 +416,6 @@ class CoordinatorsController extends Controller
                     $status='Pending for Edit';    
                 }
             }else{
-                //$status=$request->input('status');
                 $status = "Approved";
             }
             $isExclusive=1;
@@ -397,23 +436,49 @@ class CoordinatorsController extends Controller
                 $volunteers = DB::select("select * from volunteers where ProgramId = ?",[$id]);
                 
                 foreach($volunteers as $volunteer){
-                    $checkIsCoordinator = DB::select("select * from coordinators where isActive=1 and AccountId = ?",[$volunteer->AccountId]);
-                    if(sizeof($checkIsCoordinator>0)){
+                    //$checkIsCoordinator = DB::select("select * from coordinators where isActive=1 and AccountId = ?",[$volunteer->AccountId]);
+                    DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
+                    
+                    /*if(sizeof($checkIsCoordinator>0)){
                         DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
                     }else{
                         DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
-                    }
+                    }*/
                     
                 }
+                $beneficiaries = DB::select("select * from beneficiaries where ProgramId = ?",[$id]);
+                foreach($beneficiaries as $beneficiary){
+                    //$checkIsCoordinator = DB::select("select * from coordinators where isActive=1 and AccountId = ?",[$volunteer->AccountId]);
+                    DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$beneficiary->AccountId]);
+                    
+                    /*if(sizeof($checkIsCoordinator>0)){
+                        DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
+                    }else{
+                        DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
+                    }*/
+                    
+                }
+                
             }elseif(session('type')==='Director'){
+                
+                $volunteers = DB::select("select * from volunteers where ProgramId = ?",[$id]);
+                
+                foreach($volunteers as $volunteer){
+                    DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
+                }
+                
+                $beneficiaries = DB::select("select * from beneficiaries where ProgramId = ?",[$id]);
+                foreach($beneficiaries as $beneficiary){
+                    DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$beneficiary->AccountId]);
+                    
+                }
                 if($projects[0]->Level==="Program"){
-                    $coordinators=DB::select("select * from coordinators where ProgramId=?",[$projects[0]->ProgramId]);
+                    $coordinators=DB::select("select * from coordinators where ProgramId=? and isActive = 1",[$projects[0]->ProgramId]);
                     foreach($coordinators as $coordinator){
-                        
+
                         DB::insert("insert into notifications(Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session("name")." has made changes to an Activity of the ".$projects[0]->ProjectName." project.","getActivityPage?id=".$id,"Registered User",$coordinator->AccountId]);
                     }
-                    
-                    $volunteers = DB::select("select * from volunteers where ProgramId = ?",[$id]);
+                /*    $volunteers = DB::select("select * from volunteers where ProgramId = ?",[$id]);
                 
                     foreach($volunteers as $volunteer){
                         $checkIsCoordinator = DB::select("select * from coordinators where isActive=1 and AccountId = ?",[$volunteer->AccountId]);
@@ -423,9 +488,9 @@ class CoordinatorsController extends Controller
                             DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
                         }
 
-                    }
+                    }*/
                 }else{
-                    $volunteers = DB::select("select * from volunteers where ProgramId = ?",[$id]);
+                    /*$volunteers = DB::select("select * from volunteers where ProgramId = ?",[$id]);
                 
                     foreach($volunteers as $volunteer){
                         $checkIsCoordinator = DB::select("select * from coordinators where isActive=1 and AccountId = ?",[$volunteer->AccountId]);
@@ -435,7 +500,7 @@ class CoordinatorsController extends Controller
                             DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",[session('name')."  ".session('lastName')." made changes to the ".$activityName." Activity", "getActivityPage?id=".$id,"Registered User",$volunteer->AccountId]);
                         }
 
-                    }
+                    }*/
                     
                 }
             }
@@ -457,6 +522,8 @@ class CoordinatorsController extends Controller
             $programId = $activity[0]->ProjectId;
             $level = $activity[0]->Level;
             DB::delete('delete from activities where Activityid=?',[$id]);
+            DB::delete("delete from volunteers where ProgramId = ?",[$id]);
+            DB::delete("delete from beneficiaries where ProgramId = ?",[$id]);
             if($level === 'Program'){
                 return redirect('getUniversityProject?id='.$programId);
             }else{
@@ -554,15 +621,50 @@ class CoordinatorsController extends Controller
             $timeStart=$request->input('timeStart');
             $timeEnd=$request->input('timeEnd');
             
+            $message = "";
+            $countScheds = 0;
+            for($i=0;$i<sizeof($date);$i++){
+                if(trim($date[$i])!==''&&trim($timeStart[$i])!==''&&trim($timeEnd[$i])!==''){
+                    if($timeStart[$i]>=$timeEnd[$i]){
+                        $message = "Invalid Time entered";
+                    }
+                    if($date[$i]===date('Y-m-d')){
+                        $message = "Selected Date Must be from Tomorrow Onwards";
+                    }
+                    $countScheds++;
+                }else{
+                    
+                }
+            }
+            if($countScheds === 0){
+                $message = "Must have at least 1 valid schedule";
+            }
+            
+            //checking if duplicate dates
+            for($i=0;$i<sizeof($date);$i++){
+                if(trim($date[$i])!==''&&trim($timeStart[$i])!==''&&trim($timeEnd[$i])!==''){
+                    for($j=0;$j<sizeof($date);$j++){
+                        if(trim($date[$j])!==''&&trim($timeStart[$j])!==''&&trim($timeEnd[$j])!==''){
+                            if($date[$i] === $date[$j] && $i!==$j){
+                                $message = "Found Duplicate Values for Dates";
+                            }
+                        }
+                    }
+                }
+            }
+            
+            if($message!==""){
+                echo $message;
+                return;
+            }
             DB::delete("delete from schedules where ProgramId = ?",[$id]);
             if(session("type") === "Coordinator"){
-                DB::update("update activities set ActivityStatus = ? where ActivityId = ?",["Pending for Approval",$id]);
+                DB::update("update activities set ActivityStatus = ? where ActivityId = ?",["Pending for Edit",$id]);
             }
             for($i = 0;$i<sizeof($date);$i++){
                 if(trim($date[$i])!=="" && trim($timeStart[$i])!=="" && trim($timeEnd[$i])!==""){
                     DB::insert('insert into schedules (ProgramId,SchedTime,SchedTimeEnd,SchedDate) values (?, ?, ?, ?)', [$id,$timeStart[$i],$timeEnd[$i],$date[$i]]);
                 }
-            
             }
             $activity=DB::select("select * from activities a,projects p where p.ProjectId = a.ProjectId and a.ActivityId=?",[$id]);
             if(session('type')==='Coordinator'){             
@@ -575,6 +677,7 @@ class CoordinatorsController extends Controller
                     }
                 }
             }
+            echo "Successfully Changed Schedule!";
             //return back();
         }else{
             return View('RestrictedAccess');
@@ -745,6 +848,12 @@ class CoordinatorsController extends Controller
             $postWhen = (!empty($request->input('postWhen')))?$request->input('postWhen'):null;
             $postWhere = (!empty($request->input('postWhere')))?$request->input('postWhere'):null;
             $uniId=$request->input('uniId');
+            
+            $announcement=str_replace("`","'",$announcement);
+            $postWhat=str_replace("`","'",$postWhat);
+            $postWhen=str_replace("`","'",$postWhen);
+            $postWhere=str_replace("`","'",$postWhere);
+            
             if(session('type')==="Coordinator"){
                 
                 $postedBy=session('name')." ".session('lastName');
@@ -787,9 +896,15 @@ class CoordinatorsController extends Controller
             $postWhen = (!empty($request->input('postWhen')))?$request->input('postWhen'):null;
             $postWhere = (!empty($request->input('postWhere')))?$request->input('postWhere'):null;
             
+            $annDesc=str_replace("`","'",$annDesc);
+            $postWhen=str_replace("`","'",$postWhen);
+            $postWhere=str_replace("`","'",$postWhere);
+            $postWhat=str_replace("`","'",$postWhat);
+            
+            
             DB::update('update posts set PostDescr = ?,PostWhat=?,PostWhen=?,PostWhere=?
             where PostId = ?', [$annDesc,$postWhat,$postWhen,$postWhere,$annId]);
-            return back();
+         //   return back();
         }else{
             return View('RestrictedAccess');
         }
@@ -818,12 +933,24 @@ class CoordinatorsController extends Controller
      function createCertificates(Request $request){
         if(self::checkRestr()){
             $id=$request->input("id");
-            $volunteers=DB::select("select * from volunteers v,accounts a where a.AccountId=v.AccountId and ProgramId=?",[$id]);
+            $for=$request->input("for");
+            /*if($for==="volunteers"){
+                $volunteers=DB::select("select * from volunteers v,accounts a where a.AccountId=v.AccountId and ProgramId=?",[$id]);
+            }elseif($for==="beneficiaries"){
+                $volunteers=DB::select("select * from beneficiaries v,accounts a where a.AccountId=v.AccountId and ProgramId=?",[$id]);
+             
+            }
             if(empty($volunteers)){
                 echo "no volunteers found for activity";
                 return;
+            }*/
+            $activity = DB::select("select * from activities where ActivityId = ?",[$id]);
+            if(empty($activity)){
+                echo "Activity not found";
+                return;
             }
-            return View('forms.createCertificatesForm',['volunteers'=>$volunteers,'activityId'=>$id]);
+            $activity = $activity[0];
+            return View('forms.createCertificatesForm',['for'=>$for,'activityId'=>$id,'activity'=>$activity]);
             //return back();
         }else{
             return View('RestrictedAccess');
@@ -834,8 +961,9 @@ class CoordinatorsController extends Controller
         if(self::checkRestr()){
             $accountId=session('accountId');
             $id=$request->input("id");
+            $for=$request->input("for");
            $request->file('photo')->move('img\certificates',session('type').'-'.$accountId.'-certificate-photo.jpg');
-            return redirect('createCertificates?id='.$id);
+            return redirect('createCertificates?id='.$id.'&for='.$for);
         }else{
             return View('RestrictedAccess');
         }
@@ -857,7 +985,24 @@ class CoordinatorsController extends Controller
                 $releasedForm = $releasedForm[0];
                 $questions = DB::select("select * from questions where FormId = ?",[$releasedForm->FormId]);
                 foreach($questions as $question){
-                    $question->Answers = DB::select("select * from submittedanswers where QuestionId = ? and SubmittedBy = ? and ReleasedFormId = ?",[$question->QuestionId,$userId,$releasedForm->ReleasedFormId]);
+                   // $question->Answers = DB::select("select * from submittedanswers where QuestionId = ? and SubmittedBy = ? and ReleasedFormId = ?",[$question->QuestionId,$userId,$releasedForm->ReleasedFormId]);
+                    $question->Answers = DB::select("select * from choices where QuestionId = ?",[$question->QuestionId]);
+                    if($question->QuestionType === "Checkbox"){
+                        foreach($question->Answers as $answer){
+                            $answer->isAnswer = (!empty(DB::select("select * from submittedanswers where QuestionId = ? and SubmittedBy = ? and ReleasedFormId = ? and Answer = ?",[$question->QuestionId,$userId,$releasedForm->ReleasedFormId,$answer->ChoiceDescription])));
+                        }
+                    }elseif($question->QuestionType === "Radio"){
+                        //echo "asdzxc";
+                        foreach($question->Answers as $answer){
+                            $answer->isAnswer = (!empty(DB::select("select * from submittedanswers where QuestionId = ? and SubmittedBy = ? and ReleasedFormId = ? and Answer = ?",[$question->QuestionId,$userId,$releasedForm->ReleasedFormId,$answer->ChoiceDescription])));
+                        }
+                    }else{
+                        $answer = DB::select("select * from submittedanswers where QuestionId = ? and SubmittedBy = ? and ReleasedFormId = ?",[$question->QuestionId,$userId,$releasedForm->ReleasedFormId]);
+                        
+                        $question->Answers = $answer;  
+                        
+                    }
+                    
                 }
                 $response->Questions = $questions;
             }else{
@@ -865,6 +1010,30 @@ class CoordinatorsController extends Controller
             }
             echo json_encode($response);
         }
+        
+        /* if(self::checkRestr()){
+            $rfId = $request->input("rfid");
+            $userId = $request->input("userId");
+            $releasedForm = DB::select("select rf.ReleasedFormId,rf.FormId from releasedforms rf, evaluationtools ev where ev.EvaluationFormId = rf.FormId and rf.ReleasedFormId = ?",[$rfId]);
+            
+            $response = new \stdClass();
+            if(empty($userId)){
+                $response->Message = "User ID must exist";
+            
+            }elseif(!empty($releasedForm)){
+                $releasedForm = $releasedForm[0];
+                $questions = DB::select("select * from questions where FormId = ?",[$releasedForm->FormId]);
+                foreach($questions as $question){
+                    $question->Answers = DB::select("select * from submittedanswers where QuestionId = ? and SubmittedBy = ? and ReleasedFormId = ?",[$question->QuestionId,$userId,$releasedForm->ReleasedFormId]);
+                    
+                }
+                $response->Questions = $questions;
+            }else{
+                $response->Message = "Released Form not found";
+            }
+            echo json_encode($response);
+        }*/
+    
     }
     function getAllEvaluationTools(Request $request){
 
@@ -1022,7 +1191,7 @@ class CoordinatorsController extends Controller
                 $question=json_encode($question);
                 echo $question;
             }else{
-                echo "quesiton not found";
+                echo "Question not found";
             }
         }else{
             return View('RestrictedAccess');
@@ -1039,28 +1208,22 @@ class CoordinatorsController extends Controller
             $involved = null;
                 switch($answeredBy){
                     case "Student Volunteers":
-                        echo "stud vol";
                         $involved = DB::select("select * from volunteers v where v.ProgramId = ? and v.VolunteerStatus = ? and v.Type = ?",[$activityId,1,"Student"]);
                         break;
                     case "Faculty Volunteers":
                         $involved = DB::select("select * from volunteers v where v.ProgramId = ? and v.VolunteerStatus = ? and v.Type = ?",[$activityId,1,"Faculty"]);
-                        echo "fac ov";
                         break;
                     case "External Volunteers":
                         $involved = DB::select("select * from volunteers v where v.ProgramId = ? and v.VolunteerStatus = ? and v.Type = ?",[$activityId,1,"External"]);
-                        echo "external vol";
                         break;
                     case "Beneficiaries":
                         $involved = DB::select("select * from beneficiaries v where v.ProgramId = ? and v.BenStatus = ? and v.Type <> ?",[$activityId,1,"Leader"]);
-                        echo "bem";
                         break;
                     case "Leaders":
                         $involved = DB::select("select * from beneficiaries v where v.ProgramId = ? and v.BenStatus = ? and v.Type = ?",[$activityId,1,"Leader"]);
-                        echo "lead";
                         break;
                 }
             DB::insert("insert into releasedforms (ActivityId,FormId,FromDate,ToDate,ToBeAnsweredBy) values (?,?,?,?,?)",[$activityId,$formId,$fromDate,$toDate,$answeredBy]);
-            //print_r($involved);
             $releasedForm = DB::select("select max(ReleasedFormId) as 'maxId' from releasedforms");
             $releasedForm = $releasedForm[0];
             $activity=DB::select("select * from activities where ActivityId = ?",[$activityId]);
@@ -1068,7 +1231,6 @@ class CoordinatorsController extends Controller
             foreach($involved as $user){
                 DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values (?,?,?,?)",["A new Evaluation Tool has been released for ".$activity[0]->ActivityName,"fillUpEvaluationForm?relfId=".$releasedForm->maxId,"Registered User",$user->AccountId]);
             }
-           // return back();
         }else{
             return View('RestrictedAccess');
         }
@@ -1078,9 +1240,7 @@ class CoordinatorsController extends Controller
         if(self::checkRestr()){
            $uniId = session("uniId");
            $myVolunteers = array();
-            if(session("type") === "Director"){
-                //$uniId = session("uniId");
-            }elseif(session("type") === "Coordinator"){
+            if(session("type") === "Coordinator"){
                 //$myVolunteers = DB::select("select act.ActivityId as ActivityId,acc.Name as Name, acc.LastName as LastName,act.ActivityName from accounts acc,volunteers vol,activities act,projects pro where pro.ProjectId = act.ProjectId and act.ActivityId = vol.ProgramId and vol.AccountId = acc.AccountId and pro.Status = ? and act.ActivityStatus = ? and vol.VolunteerStatus = ? and pro.Level = ? and pro.ProgramId = ?",["Approved","Approved",1,"Program",session("programId")]);
                 $myVolunteers = DB::select("select acc.AccountId as AccountId,acc.Name as Name, acc.LastName as LastName,count(vol.VolunteerId) as ActivityCount from accounts acc,volunteers vol,activities act,projects pro where pro.ProjectId = act.ProjectId and act.ActivityId = vol.ProgramId and vol.AccountId = acc.AccountId and pro.Status = ? and act.ActivityStatus = ? and vol.VolunteerStatus = ? and pro.Level = ? and pro.ProgramId = ? group by acc.AccountId, acc.Name, acc.LastName",["Approved","Approved",1,"Program",session("programId")]);
 
@@ -1098,19 +1258,18 @@ class CoordinatorsController extends Controller
             $volIds = $request["volIds"];
             $benIds = $request["benIds"];
 
-            print_r($volIds);
-            print_r($benIds);
-            if(!empty($volIds))
-            foreach($volIds as $volId){
-                $volunteer = DB::select("select * from volunteers where VolunteerId = ?",[$volId]);
-                DB::update("update volunteers set VolunteerStatus = ? where VolunteerId = ?",[1,$volId]);
-            
+            if(!empty($volIds)){
+                foreach($volIds as $volId){
+                    $volunteer = DB::select("select * from volunteers where VolunteerId = ?",[$volId]);
+                    DB::update("update volunteers set VolunteerStatus = ?,ApprovedDate=? where VolunteerId = ?",[1,date('Y-m-d'),$volId]);
+
+                }
             }
-            if(!empty($benIds))
-            foreach($benIds as $benId){
-                $beneficiary = DB::select("select * from beneficiaries where BeneficiaryId = ?",[$benId]);
-                DB::update("update beneficiaries set BenStatus = ? where BeneficiaryId = ?",[1,$benId]);
-            
+            if(!empty($benIds)){
+                foreach($benIds as $benId){
+                    $beneficiary = DB::select("select * from beneficiaries where BeneficiaryId = ?",[$benId]);
+                    DB::update("update beneficiaries set BenStatus = ?,ApprovedDate=? where BeneficiaryId = ?",[1,date('Y-m-d'),$benId]);
+                }
             }
             return back();
         }else{
@@ -1122,7 +1281,15 @@ class CoordinatorsController extends Controller
         if(self::checkRestr()){
             $activityId = $request->input("activityId");
             $accIds = $request->input("accIds");
+            $activity = DB::select("select * from activities where ActivityId = ?",[$activityId]);
+            if(empty($activity)){
+                echo "Activity not found";
+                
+                return;
+            }
+            $activity=$activity[0];
             $status = 1;
+            $counter = 0;
             if($accIds!==null&&sizeof($accIds)>0){
                 foreach($accIds as $acc){
                     if($request->input($acc."Type")==="Volunteer - Faculty"){
@@ -1130,15 +1297,15 @@ class CoordinatorsController extends Controller
                     }else{
                         $type="Student";
                     }
-                    //$type = session('accountType');
                     DB::insert("insert into volunteers (ProgramId,AccountId,VolunteerStatus,Type,ApprovedDate) values (?,?,?,?,?)",[$activityId,$acc,$status,$type,date("Y-m-d")]);
-                    echo "ok";
-
+                    DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values(?,?,?,?)",["You have been enlisted as ".$type." Volunteer of the ".$activity->ActivityName."Activity","getActivityPage?id=".$activityId,"Registered User",$acc]);
+                    $counter++;
                 }
+                echo ($counter === 1 ? 'Volunteer has':'All '.$counter.' Volunteers have').' been Added';
             }else{
-                echo "none selected";
+                echo "None Selected";
             }
-            return back();
+            //return back();
 
         }else{
             return View('RestrictedAccess');
@@ -1149,8 +1316,6 @@ class CoordinatorsController extends Controller
             $volIds = $request["volIds"];
             $benIds = $request["benIds"];
 
-            print_r($volIds);
-            print_r($benIds);
             if(!empty($volIds))
             foreach($volIds as $volId){
                 DB::delete("delete from volunteers where VolunteerId = ?",[$volId]);
@@ -1169,25 +1334,34 @@ class CoordinatorsController extends Controller
             $activityId = $request->input("activityId");
             $accIds = $request->input("accIds");
             $status = 1;
+            $counter = 0;
+            $activity = DB::select("select * from activities where ActivityId = ?",[$activityId]);
+            if(empty($activity)){
+                echo "Activity not found!";
+                return;
+            }
+            $activity=$activity[0];
             if($accIds!==null&&sizeof($accIds)>0){
                 foreach($accIds as $acc){
-                    $activity = DB::select("select * from activities where ActivityId = ?",[$activityId]);
-                    $activity=$activity[0];
+                    
                     if($request->input($acc."Type")==="Beneficiary - Leader"){
                         $type="Leader";
                     }else{
                         $type="Member";
                     }
+                    
                     DB::insert("insert into beneficiaries (ProgramId,AccountId,BenStatus,Type,ApprovedDate) values (?,?,?,?,?)",[$activityId,$acc,$status,$type,date("Y-m-d")]);
                     DB::insert("insert into notifications (Description,LinksTo,Recipient,RecipientId) values(?,?,?,?)",["You have been enlisted as a ".$request->input($acc.'Type')." for the ".$activity->ActivityName." Activity","getActivityPage?id=".$activityId,"Registered User",$acc]);
-                    echo "ok";
+                    $counter++;
                     
                 }
+                echo ($counter === 1 ? 'Beneficiary has':'All '.$counter.' Beneficiaries have').' been Added';
+            
             }else{
-                echo "none selected";
+                echo "None Selected";
             }
             //DB::insert("insert into activities");
-            return back();
+            //return back();
         }else{
             return View('RestrictedAccess');
         }
@@ -1205,8 +1379,17 @@ class CoordinatorsController extends Controller
                 echo "activity not found";
                 return;
             }
-            $distinctDates = DB::select("select distinct(SchedDate) from schedules where ProgramId = ?",[$actId]);
-            $volunteers = DB::select("select * from volunteers v,Accounts a where a.AccountId = v.AccountId and v.ProgramId = ?",[$actId]);
+            
+            /*$schedules = DB::select("select * from schedules where ProgramId = ?",[$actId]);
+            print_r($schedules);
+            
+            $volunteers = DB::select("select * from volunteers v,accounts a where a.AccountId = v.AccountId and v.ProgramId = ?",[$actId]);
+            foreach($volunteers as $volunteer){
+            
+            }*/
+            $distinctDates = DB::select("select distinct(SchedDate) from schedules where ProgramId = ? order by SchedDate asc",[$actId]);
+            //$distinctDates = DB::select("select (SchedDate) from schedules where ProgramId = ? order by SchedDate asc",[$actId]);
+            $volunteers = DB::select("select * from volunteers v,Accounts a where a.AccountId = v.AccountId and v.ProgramId = ? and v.VolunteerStatus = 1",[$actId]);
             
             $i=0;
             foreach($volunteers as $volunteer){
@@ -1232,19 +1415,37 @@ class CoordinatorsController extends Controller
                 }
                 array_push($finalVol,$volunteer);
             }
-            foreach($finalVol as $volunteer){
-                
-                    //echo $volunteer->Name."<br>";
-                
-                foreach($volunteer->AttendanceDates as $date){
-
-                    //echo $date->SchedDate;
-                    //print_r($date->Record);
-                    //echo $date->SchedDate."<br>";
+            
+            
+            $beneficiaries = DB::select("select * from beneficiaries b,Accounts a where a.AccountId = b.AccountId and b.ProgramId = ? and b.BenStatus = 1",[$actId]);
+            
+            $i=0;
+            foreach($beneficiaries as $beneficiary){
+                $sample = array();
+                foreach($distinctDates as $d){
+                    $copyofob = clone $d;
+                    array_push($sample,$copyofob);   
                 }
-               // echo "<br>";
+                $beneficiary->AttendanceDates = $sample;
             }
-            return View('getActivityAttendance',["activity"=>$activity,"distinctDates"=>$distinctDates,"volunteers"=>$finalVol]);
+            $i=0;
+            $finalBen = array();
+            foreach($beneficiaries as $beneficiary){
+                foreach($beneficiary->AttendanceDates as $date){
+                    $record = new \stdClass();
+                    $record = DB::select("select * from beneficiaryattendances where BeneficiaryId = ? and AttendanceDate = ?",[$beneficiary->BeneficiaryId,$date->SchedDate]);
+                    
+                    $copy_of_record = array();
+                    foreach($record as $r){
+                        array_push($copy_of_record,$r);     
+                    }
+                   $date->Record = $copy_of_record;
+                }
+                array_push($finalBen,$beneficiary);
+            }
+            
+            
+            return View('getActivityAttendance',["activity"=>$activity,"distinctDates"=>$distinctDates,"volunteers"=>$finalVol,"beneficiaries"=>$finalBen]);
         }else{
             return View('RestrictedAccess');
         }
@@ -1253,18 +1454,14 @@ class CoordinatorsController extends Controller
         if(self::checkRestr() || !empty($request->input("isMobile"))){
             $actId = $request->input("ai");
             $date = $request->input("date");
+            $date = date("Y-m-d", strtotime($date));
             $volIds = $request->input("volIds");
             foreach($volIds as $volunteer){
 
                 DB::delete("delete from volunteerattendances where AttendanceDate = ? and VolunteerId = ?",[$date,$volunteer]);
                 DB::insert("insert into volunteerattendances (AttendanceDate,VolunteerId,Status) values (?,?,?)",[$date,$volunteer,$request->input($volunteer."Status")]);
-                echo "naadd nga".$request->input($volunteer."Status")."si".$volunteer;
+            
             }
-            foreach($volIds as $vol){
-                //if(!empty($request->input($vol."Status")))
-                //echo $vol." is ".$request->input($vol."Status")."<br>";
-            }
-            echo "nakasulod";
             
             
         }else{
@@ -1275,23 +1472,40 @@ class CoordinatorsController extends Controller
         if(self::checkRestr()){
             $actId = $request->input("ai");
             $date = $request->input("date");
-            $volunteers = DB::select("select * from volunteers where ProgramId =  ? and VolunteerStatus = ?",[$actId,1]);
-            foreach($volunteers as $volunteer){
-                $volAttendance = DB::select("select * from volunteerattendances where VolunteerId = ? and AttendanceDate = ?",[$volunteer->VolunteerId,$date]);
-                if(!empty($request->input($volunteer->VolunteerId."-attendance"))){
-                    $status = "Present";  
-                }else{  
-                    $status = "Absent";
+            $type = $request->input('type');
+            if($type==="volunteer"){
+                $volunteers = DB::select("select * from volunteers where ProgramId =  ? and VolunteerStatus = ?",[$actId,1]);
+                foreach($volunteers as $volunteer){
+                    $volAttendance = DB::select("select * from volunteerattendances where VolunteerId = ? and AttendanceDate = ?",[$volunteer->VolunteerId,$date]);
+                    if(!empty($request->input($volunteer->VolunteerId."-attendance"))){
+                        $status = "Present";  
+                    }else{  
+                        $status = "Absent";
+                    }
+                    if(!empty($volAttendance)){
+                        DB::update("update volunteerattendances set Status = ? where VolunteerId = ? and AttendanceDate = ?",[$status,$volunteer->VolunteerId,$date]);
+                        
+                    }else{
+                        DB::insert("insert into volunteerattendances (AttendanceDate,VolunteerId,Status) values (?,?,?)",[$date,$volunteer->VolunteerId,$status]);
+                    }
                 }
-                echo $request->input($volunteer->VolunteerId."-attendance");
-                if(!empty($volAttendance)){
-                    echo $status.$volunteer->VolunteerId;
-                    DB::update("update volunteerattendances set Status = ? where VolunteerId = ? and AttendanceDate = ?",[$status,$volunteer->VolunteerId,$date]);
-                    echo "naa";
-                }else{
-                    DB::insert("insert into volunteerattendances (AttendanceDate,VolunteerId,Status) values (?,?,?)",[$date,$volunteer->VolunteerId,$status]);
-                    echo "wa";
+            }else{
+                $beneficiaries = DB::select("select * from beneficiaries where ProgramId =  ? and BenStatus = ?",[$actId,1]);
+                foreach($beneficiaries as $beneficiary){
+                    $benAttendance = DB::select("select * from beneficiaryattendances where BeneficiaryId = ? and AttendanceDate = ?",[$beneficiary->BeneficiaryId,$date]);
+                    if(!empty($request->input($beneficiary->BeneficiaryId."-attendance"))){
+                        $status = "Present";  
+                    }else{  
+                        $status = "Absent";
+                    }
+                    if(!empty($benAttendance)){
+                        DB::update("update beneficiaryattendances set Status = ? where BeneficiaryId = ? and AttendanceDate = ?",[$status,$beneficiary->BeneficiaryId,$date]);
+                    }else{
+                        DB::insert("insert into beneficiaryattendances (AttendanceDate,BeneficiaryId,Status) values (?,?,?)",[$date,$beneficiary->BeneficiaryId,$status]);
+                    }
+
                 }
+                
             }
             return back();
             
@@ -1347,7 +1561,9 @@ class CoordinatorsController extends Controller
                 return View('getResults',["releasedForm"=>$releasedForm,"respondents"=>$respondents])->with('json',json_decode($json,true));
                 
             }else{
-                echo "releasedform not found";
+                $message = "Released Form does not Exists";
+                return View('notFound',["message"=>$message]);
+        
             }
         }else{
             return View('RestrictedAccess');
@@ -1371,11 +1587,34 @@ class CoordinatorsController extends Controller
     function editReleasedForm(Request $request){
         if(self::checkRestr()){
             $rfId=$request->input("rfId");
+            $releasedForm = DB::select("select * from releasedforms where ReleasedFormId = ?",[$rfId]);
+            
+            $releasedForm = $releasedForm[0];
+            
             $fromDate=$request->input("fromDate");
             $toDate=$request->input("toDate");
             $for=$request->input("for");
-            DB::update("update releasedforms set FromDate = ?, ToDate = ?, ToBeAnsweredBy = ? where ReleasedFormId = ?",[$fromDate,$toDate,$for,$rfId]);
-            return back();
+            $involved=array();
+                switch($for){
+                    case "Student Volunteers":
+                        $involved = DB::select("select * from volunteers v where v.ProgramId = ? and v.VolunteerStatus = ? and v.Type = ?",[$releasedForm->ActivityId,1,"Student"]);
+                        break;
+                    case "Faculty Volunteers":
+                        $involved = DB::select("select * from volunteers v where v.ProgramId = ? and v.VolunteerStatus = ? and v.Type = ?",[$releasedForm->ActivityId,1,"Faculty"]);
+                        break;
+                    case "External Volunteers":
+                        $involved = DB::select("select * from volunteers v where v.ProgramId = ? and v.VolunteerStatus = ? and v.Type = ?",[$releasedForm->ActivityId,1,"External"]);
+                        break;
+                    case "Beneficiaries":
+                        $involved = DB::select("select * from beneficiaries v where v.ProgramId = ? and v.BenStatus = ? and v.Type <> ?",[$releasedForm->ActivityId,1,"Leader"]);
+                        break;
+                    case "Leaders":
+                        $involved = DB::select("select * from beneficiaries v where v.ProgramId = ? and v.BenStatus = ? and v.Type = ?",[$releasedForm->ActivityId,1,"Leader"]);
+                        break;
+                }
+            print_r($involved);
+            //DB::update("update releasedforms set FromDate = ?, ToDate = ?, ToBeAnsweredBy = ? where ReleasedFormId = ?",[$fromDate,$toDate,$for,$rfId]);
+            //return back();
         }else{
             return View('RestrictedAccess');
         }
@@ -1445,24 +1684,73 @@ class CoordinatorsController extends Controller
             $myApprovedProjects = array();
             $myApprovedActivities = array();
             $allProjects = array();
+            $allActivities = array();
 
             if(session('type')==="Director"){
                 $myPendingProjects = DB::select("select * from projects pj,programs pg where pg.ProgramId = pj.ProgramId and pg.UniversityId = ? and pj.Status <> ?",[session('uniId'),'Approved']);
                 $myPendingActivities = DB::select("select * from projects pj,programs pg,activities ac where pg.ProgramId = pj.ProgramId and pj.ProjectId = ac.ProjectId and pg.UniversityId = ? and ac.ActivityStatus <> ?",[session('uniId'),'Approved']);
-                $myApprovedProjects = DB::select("select * from projects pj,programs pg where pg.ProgramId = pj.ProgramId and pg.UniversityId = ?",[session('uniId')]);
-                //$allProjects = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,sc.SchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? order by sc.SchedDate desc",["Approved","Approved"]);
-                $allProjects = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,sc.SchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and ((pj.Level = ? and pj.ProgramId = ?) or (pj.Level = ? and pj.ProgramId in (select pgg.ProgramId from programs pgg where pgg.UniversityId=?))) order by sc.SchedDate desc",["Approved","Approved","Institution",session('uniId'),"Program",session('uniId')]);
-
+                
+                //$allActivities = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,max(sc.SchedDate) as SchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and ((pj.Level = ? and pj.ProgramId = ?) or (pj.Level = ? and pj.ProgramId in (select pgg.ProgramId from programs pgg where pgg.UniversityId=?))) group by  pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName order by SchedDate desc",["Approved","Approved","Institution",session('uniId'),"Program",session('uniId')]);
+                
+                //$allActivities = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,max(sc.SchedDate) as MaxSchedDate,min(sc.SchedDate) as MinSchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and ((pj.Level = ? and pj.ProgramId = ?) or (pj.Level = ? and pj.ProgramId in (select pgg.ProgramId from programs pgg where pgg.UniversityId=?))) group by  pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName order by sc.SchedDate desc",["Approved","Approved","Institution",session('uniId'),"Program",session('uniId')]);
+                $allActivities = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,max(sc.SchedDate) as MaxSchedDate,min(sc.SchedDate) as MinSchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and ((pj.Level = ? and pj.ProgramId = ?) or (pj.Level = ? and pj.ProgramId in (select pgg.ProgramId from programs pgg where pgg.UniversityId=?))) group by  pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName order by MaxSchedDate desc",["Approved","Approved","Institution",session('uniId'),"Program",session('uniId')]);
+                
+                $allProjects = DB::select("select * from projects pj,programs pg where pj.ProgramId = pg.ProgramId and pj.Status = 'Approved' and ((pj.Level = 'Institution' and pj.ProgramId = ?)||(pj.Level = 'Program' and pj.ProgramId in (select ProgramId from programs where UniversityId = ?))) order by pj.ProjectId desc",[session('uniId'),session('uniId')]);
+                
             }elseif(session('type')==="Coordinator"){
                 $myPendingProjects = DB::select("select * from projects pj,programs pg where pg.ProgramId = pj.ProgramId and pg.ProgramId = ? and Status <> ?",[session('programId'),'Approved']);
+                
                 $myPendingActivities = DB::select("select * from activities a,projects p,programs r where r.ProgramId = p.ProgramId and p.ProjectId = a.ProjectId and p.ProgramId = ? and a.ActivityStatus <> ?",[session('programId'),'Approved']);
                 
-                $allProjects = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,sc.SchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and pj.Level = ? and pj.ProgramId = ? order by sc.SchedDate desc",["Approved","Approved","Program",session('programId')]);
+                //$allActivities = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,sc.SchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and pj.Level = ? and pj.ProgramId = ? order by sc.SchedDate desc",["Approved","Approved","Program",session('programId')]);
+                $allActivities = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,max(sc.SchedDate) as MaxSchedDate,min(sc.SchedDate) as MinSchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and pj.Level = ? and pj.ProgramId = ?  group by  pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName order by MaxSchedDate desc",["Approved","Approved","Program",session('programId')]);
 
+                //$allActivities = DB::select("select pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName,max(sc.SchedDate) as MaxSchedDate,min(sc.SchedDate) as MinSchedDate from projects pj,activities ac,schedules sc where pj.ProjectId = ac.ProjectId and ac.ActivityId = sc.ProgramId and pj.Status=? and ac.ActivityStatus=? and ((pj.Level = ? and pj.ProgramId = ?) or (pj.Level = ? and pj.ProgramId in (select pgg.ProgramId from programs pgg where pgg.UniversityId=?))) group by  pj.ProjectId,pj.Banner,pj.ProjectName,ac.ActivityId,ac.ActivityName order by sc.SchedDate desc",["Approved","Approved","Program",session('uniId'),"Program",session('uniId')]);
+                
+                $allProjects = DB::select("select * from projects p,programs g where p.ProgramId = g.ProgramId and p.Level = 'Program' and p.Status = 'Approved' and g.ProgramId = ? order by p.ProjectId desc",[session("programId")]);
             }
-            return View('viewPendingProposals',["myPendingProjects"=>$myPendingProjects,"myPendingActivities"=>$myPendingActivities,"allProjects"=>$allProjects]);
+            return View('viewPendingProposals',["myPendingProjects"=>$myPendingProjects,"myPendingActivities"=>$myPendingActivities,"allActivities"=>$allActivities,"allProjects"=>$allProjects]);
         }else{
             return View('RestrictedAccess');
+        }
+    }
+    function printToolResults(Request $request){
+        if(self::checkRestr()){
+            $myPendingProjects = array();
+            $releasedFormId = $request->input("rfid");
+            $releasedForm = DB::select("select * from releasedforms r, evaluationtools f, activities a where a.ActivityId = r.ActivityId and f.EvaluationFormId = r.FormId and  r.ReleasedFormId = ?",[$releasedFormId]);
+            
+            if(!empty($releasedForm)){
+                $releasedForm = $releasedForm[0];
+                $releasedForm->Questions = DB::select("select * from questions where FormId = ?",[$releasedForm->FormId]);
+                
+                
+                foreach($releasedForm->Questions as $question){
+                    $choices = DB::select("select * from choices where QuestionId = ?",[$question->QuestionId]);
+                    $question->Choices = $choices;
+                }
+                
+                foreach($releasedForm->Questions as $question){
+                    if($question->QuestionType === "Open"){
+                        $question->Answers = DB::select("select * from submittedanswers s where s.ReleasedFormId = ? and s.QuestionId = ?",[$releasedFormId,$question->QuestionId]);
+                    }else{
+                        foreach($question->Choices as $choice){
+                            $tally=DB::select("select * from submittedanswers s where s.ReleasedFormId = ? and s.QuestionId = ? and s.Answer = ?",[$releasedFormId,$question->QuestionId,$choice->ChoiceDescription]);
+                            if($question->QuestionType !== "Open"){
+                                $choice->Tally = sizeof($tally);
+                            }
+                        }
+                    }
+                }
+                $json=json_encode($releasedForm);
+                return View('printToolResults',["releasedForm"=>$releasedForm])->with('json',json_decode($json,true));
+                
+            }else{
+                echo "releasedform not found";
+            }
+        }else{
+            return View('RestrictedAccess');
+            
         }
     }
     

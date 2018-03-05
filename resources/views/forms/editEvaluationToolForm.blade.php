@@ -3,16 +3,17 @@
         <div class="modal-content">
             <div class="modal-header">
                 EDIT EVALUATION TOOL
+                
+                <span onclick="$('#editEvaluationToolModal').modal('hide');" class="close-span">&times;</span>
             </div>
             <div class="modal-body" style="">
-                    
             <form id="editEvaluationFormForm" method="get" onsubmit="editEvaluationTool();return false;">
-                <input type="hidden" id="formId" name="formId" readonly>
+                <input type="hidden" id="formId" name="formId" value="{{!empty($evaluationTool->EvaluationFormId)?$evaluationTool->EvaluationFormId:''}}" readonly>
                 Form Name: 
-                <input type="text" class="form-control" id="formName" name="formName"><br>
+                <input type="text" class="form-control" value="{{!empty($evaluationTool->EvaluationFormName)?$evaluationTool->EvaluationFormName:''}}" id="formName" name="formName"><br>
                 Form Description:
-                <input type="text" class="form-control" id="formDesc" name="formDesc"><br>
-                <input type="submit" value="SUBMIT" class="btn btn-success">
+                <input type="text" class="form-control" value="{{!empty($evaluationTool->EvaluationFormDescription)?$evaluationTool->EvaluationFormDescription:''}}" id="formDesc" name="formDesc"><br>
+                <input type="submit" value="SUBMIT" class="blue-button" style="margin-left:40%;">
             </form>
 
             </div>
@@ -30,13 +31,16 @@
                 type: "get", 
 		        data: $("#editEvaluationFormForm").serialize(),
                 success: function(response) {
-                    alert('successfully edited evaluation tool');
-                    location.reload();
+//                    alert('successfully edited evaluation tool');
+                    swal("successfully edited evaluation tool","","success").then(()=>{location.reload();});
+
+
 
                 },
                 error: function(xhr) {
                     console.log(xhr);
-                    alert('error!');
+                    swal("Something went wrong!","","error").then(()=>{});
+
                 }
             });
                          

@@ -97,8 +97,10 @@
                                         <div class="col-sm-3">
                                             <img src="default-img/edit.png" data-toggle="modal" data-target="#editProjectModal" data-toggle="tooltip" title="Edit Project Details" style="width:20px;margin-right:5px;" alt="edit">
                                         </div>
-                                        @if((Session::get('type') === "Director") || (Session::get('type')==="Coordinator" && $project->Status === "Pending for Add"))
-                                        
+                                        <!--
+                                        if((Session::get('type') === "Director") || (Session::get('type')==="Coordinator" && $project->Status === "Pending for Add")
+                                        -->
+                                        @if(sizeof($project->Activities)===0)
                                         <div class="col-sm-3">
                                             <img data-toggle="tooltip" title="Delete this Project" onclick="deleteThisProject({{$project->ProjectId}})" src="default-img/trash.png" style="width:20px;;" alt="delete">                  
                                         </div>
@@ -270,7 +272,7 @@
                                                 <div class="col-sm-3">
                                                 @if($project->Status === "Approved")
                                                     @if($canEdit === 1)
-                                                    <button data-toggle="modal" class="blue-button" style="width:100%;" data-target="#addActivityModal">
+                                                    <button class="blue-button" style="width:100%;" onclick="checkAddActivities()">
                                                         + Add Activity
                                                     </button>
                                                     @endif
@@ -285,6 +287,46 @@
                                         </div>
                                     
                                         <script>
+                                            function checkAddActivities(){
+                                                $.ajax({
+                                                url: "{{ url('/checkActivities') }}",
+                                                type: "get",
+                                                success: function(response) {
+                                                    if(response === "Can Add"){
+                                                        $('#addActivityModal').modal('show'); 
+                                                    }else{
+                                                        //swal(response,"","error").then
+                                                        @if(Session::get('type')==="Director")
+                                                            swal({
+                                                                title:response,
+                                                                icon:"error",
+                                                                text:"",
+                                                                buttons:{
+                                                                  confirm:{
+                                                                      text:"Upgrade Account Now",
+                                                                        value:"confirm",
+                                                                  },
+                                                                    cancel:{
+                                                                        text:"cancel",
+                                                                        value:"cancel",
+                                                                    },
+                                                                },
+                                                            }).then((value)=>{
+                                                                if(value === "confirm"){
+                                                                    window.location.href="{{url('chooseFromSubscription')}}";
+                                                                }else{
+                                                                }
+                                                            });
+                                                        @else
+                                                            swal(response,"","error").then(()=>{});
+                                                        @endif
+                                                    }
+                                                },
+                                                error: function(xhr) {
+                                                    alert("Data: error");
+                                                }
+                                            });
+                                            }
                                             function filterActivities(keyword){
                                                 //alert(keyword);
                                                 console.log(keyword);

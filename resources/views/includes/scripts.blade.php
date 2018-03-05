@@ -16,7 +16,9 @@
 <script src="js/sweetalert.min.js"></script>
 
 <!-- Control Center for Light Bootstrap Dashboard: scripts for the example pages etc -->
+<!--
 <script src="js/light-bootstrap-dashboard.js?v=2.0.1" type="text/javascript"></script>
+-->
 <script>
 $('#edit-uni-button').on('click',function(event){
 	event.stopPropagation();
